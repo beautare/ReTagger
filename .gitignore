@@ -1,0 +1,36 @@
+# macOS
+.DS_Store
+
+.claude/
+
+# Xcode 用户态数据
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# 构建产物
+build/
+DerivedData/
+*.log
+
+# 环境配置（.env.example 作为模板保留在仓库中）
+.env
+.env.*
+!.env.example
+
+# 签名与密钥材料
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+*.certSigningRequest
+
+# 本地协作辅助目录
+memory/
+
+# 归档与打包产物
+*.xcarchive
+*.ipa
+*.dmg
+*.zip

@@ -1,0 +1,570 @@
+/* Common Text */
+"common.error" = "错误";
+"common.cancel" = "取消";
+"common.delete" = "删除";
+"common.and" = "和";
+"common.or" = " 或 ";
+"common.comma" = "、";
+"common.got_it" = "我知道了";
+"common.unknown_artist" = "未知艺术家";
+"common.unknown_album" = "未知专辑";
+
+/* Status Text */
+"status.pending" = "未处理";
+"status.loading" = "加载中...";
+"status.processing" = "正在处理...";
+"status.scanning_files" = "正在扫描文件...";
+"status.connecting" = "正在连接服务器...";
+"status.sending" = "发送中...";
+
+/* Action Buttons */
+/* Action Buttons */
+"action.view_file" = "查看文件";
+"action.continue_without_backup" = "无备份继续";
+"action.change" = "更改...";
+"action.reveal_in_finder" = "在 Finder 中显示";
+"action.copy_path" = "拷贝文件路径";
+"action.restore_default_columns" = "恢复到默认的列配置";
+"action.confirm_write" = "修正";
+"action.no_pending_confirmations" = "当前没有待确认的 AI 修正";
+"action.play" = "播放";
+"action.discard" = "放弃";
+"action.retry_ai" = "重试 AI";
+"action.reprocess_ai" = "重新 AI 打标签";
+"action.settings" = "设置";
+"action.restart" = "重新开始";
+"action.add_folder" = "添加文件/文件夹";
+"action.history" = "历史目录";
+"action.remove_directory" = "移除此目录";
+"action.close_all" = "关闭所有目录";
+"action.undo" = "撤销";
+"action.undo_short" = "撤回";
+"action.write_short" = "修正";
+"action.discard_short" = "放弃";
+"table.item_count" = "%d 条";
+
+/* Column Configuration */
+"config.restore_defaults" = "恢复默认";
+"config.apply" = "应用";
+"config.mandatory_column" = "必须列无法隐藏";
+"config.hide_column_hint" = "点击隐藏此列";
+"config.show_column_hint" = "点击显示此列";
+"config.drag_reorder_hint" = "拖拽以调整列顺序";
+"config.save_help" = "保存并应用新的列配置";
+"config.restore_help" = "恢复到默认的列配置";
+
+/* AI Related */
+"ai.tagging" = "AI 打标签";
+"ai.tagging_failed" = "AI 打标签失败";
+"ai.no_corrections" = "AI 未提供新的修正";
+"ai.retry" = "重试 AI";
+"ai.retag" = "重新 AI 打标签";
+"ai.confirm_batch" = "确认批量 AI 打标签";
+"ai.corrections_applied" = "成功应用AI修正";
+"ai.app_subtitle" = "AI 音乐标签修正工具";
+"ai.processing_with_gemini" = "正在使用 Gemini 处理元数据";
+"ai.select_track_for_details" = "选择曲目查看 AI 修正详情";
+"ai.write_all_pending" = "将所有待确认的 AI 修正应用到文件";
+"ai.tag_all_tracks" = "对当前列表中的所有曲目执行 AI 自动打标签";
+"ai.processed_count" = "已处理 %d/%d 个文件";
+"ai.batch_progress" = "批次 %d/%d";
+"ai.success_count" = "成功处理了 %d 个文件";
+"ai.partial_permission_error" = "%d 个文件因权限问题无法处理，建议检查文件权限";
+
+/* Authentication */
+"auth.sign_in_register" = "登录/注册";
+"auth.sign_in_with_google" = "使用 Google 登录";
+"auth.username_optional" = "用户名 (可选)";
+"auth.email_not_verified" = "邮箱未验证";
+"auth.resend_verification" = "重发验证邮件";
+"auth.verification_sent" = "验证邮件已发送，请检查您的邮箱";
+"auth.check_email_for_verification" = "请检查您的邮箱 %@ 并点击验证链接以完成注册。";
+"auth.registration_success" = "注册成功！";
+"auth.verification_sent_to" = "验证邮件已发送至：";
+"auth.check_email_with_spam" = "请检查您的邮箱（包括垃圾邮件文件夹），点击邮件中的链接完成验证。";
+"auth.password_min_length" = "密码长度至少为 %d 位";
+"auth.agree_to_terms" = "我已阅读并同意";
+"auth.terms_of_service" = "服务条款";
+"auth.privacy_policy" = "隐私政策";
+"auth.agree_to_terms_required" = "请阅读并同意服务条款和隐私政策";
+"auth.confirm_delete_account" = "确认删除账户";
+"auth.delete_account_warning" = "此操作不可撤销。您的账户及所有相关数据将被永久删除。";
+"auth.delete_account" = "删除账户";
+"auth.email_verified" = "邮箱已验证";
+
+/* Errors */
+"error.title" = "错误";
+"error.filesystem" = "文件系统错误";
+"error.metadata_read_failed" = "无法读取元数据";
+"error.user_cancelled" = "用户取消了操作。";
+"error.write_not_supported" = "当前文件暂不支持写入";
+"error.no_audio_files" = "没有找到支持的音频文件";
+"error.track_removed" = "曲目已被移除，无法撤回。";
+"error.unknown" = "发生未知错误，请稍后再试。";
+"error.rate_limit" = "请求过于频繁，请稍后再试。";
+"error.access_denied" = "访问被拒绝，请检查账户权限。";
+"error.server_error" = "服务器内部错误，请联系技术支持。";
+"error.invalid_request" = "请求格式不正确，请检查数据是否有效。";
+"error.network_unavailable" = "无法连接服务器，请检查网络或稍后再试。";
+"error.auth_failed" = "身份验证失败，请检查邮箱和密码是否正确。";
+"error.forgot_password_hint" = "输入您的注册邮箱，我们将向您发送重置密码的链接。";
+"error.unparseable_response" = "服务器返回了无法解析的数据，请更新应用或稍后再试。";
+"error.unauthorized" = "未授权访问，请检查 API 密钥是否正确。";
+"error.endpoint_not_found" = "服务端点不存在，请检查后端 URL 配置。";
+"error.move_to_trash" = " 移至废纸篓吗？";
+
+/* File System */
+"filesystem.select_directory.message" = "请选择支持的音频文件或包含音频文件的目录";
+"filesystem.select_directory.confirm" = "选择";
+"filesystem.backup_permission_prompt" = "ReTagger 需要访问『%@』文件夹以保存备份。请在弹出的窗口中授予权限。";
+"filesystem.request_access.message" = "请选择一个目录以授予访问权限";
+"filesystem.request_access.confirm" = "选择";
+"filesystem.backup_root_permission_prompt" = "ReTagger 需要访问备份目录『%@』，请在弹出的窗口中重新选择该目录。";
+
+/* Permissions */
+"permission.directory_reauth_prompt" = "ReTagger 需要访问『%@』目录，请在弹出的窗口中重新选择。";
+"permission.directory_reauth_prompt_brackets" = "ReTagger 需要访问【%@】目录，请在弹出的窗口中重新选择。";
+"permission.request_directory" = "应用需要访问目录『%@』，请授予权限。";
+
+/* Errors with parameters */
+"error.history_directory_denied" = "无法访问历史目录：%@";
+"error.history_directory_missing" = "历史目录不存在：%@";
+"error.directory_denied_path" = "未获得该目录的沙盒访问授权。如果需要整理该文件，请重新添加并授予访问权限。";
+"error.directory_moved_or_deleted" = "目录已被移动或删除：%@";
+"error.load_files_failed" = "加载文件失败：%@";
+"error.directory_access_missing" = "无法获取目录访问权限：%@";
+"error.trash_permission_denied" = "无法将 %@ 移至废纸篓：缺少写入权限，请在 Finder 中调整权限。";
+"error.trash_failed" = "无法将 %@ 移至废纸篓：%@";
+"error.scan_directory_failed" = "无法扫描目录：%@";
+"error.ai_processing_failed" = "AI 处理失败: %@";
+"error.write.unsupported_format" = "%@：当前文件编码不支持写入";
+"error.write.failed_permission" = "%@：写入失败（请确认文件具备写入权限且未被占用）";
+"error.write.filesystem" = "%@：%@";
+"error.write.permission_denied" = "%@：缺少访问权限";
+"error.write.generic" = "%@：%@";
+"error.write.failed_generic" = "写入失败：%@";
+"error.undo.selection_required" = "请选择至少一个可撤回的曲目。";
+"error.undo.no_record" = "该曲目暂无可撤回的记录。";
+"error.undo.failed" = "撤回失败：%@";
+"error.confirmation.not_needed" = "当前曲目无需确认。";
+"error.confirmation.no_fields" = "当前曲目没有可写入的字段。";
+"error.confirmation.field_selection_required" = "请选择至少一个需要写入的字段。";
+"error.confirmation.selection_required" = "请选择至少一个待确认的曲目。";
+"error.backup.access_denied" = "无法访问备份目录，操作已取消。";
+"error.batch.partial_write_failure" = "部分曲目写入失败：%@";
+"error.insufficient_credits" = "今日免费额度不足：需要 %d 点，%@剩余 %d 点。请登录或充值后再试。";
+
+/* Backup Access Denied Guidance */
+"alert.backup_access_denied.title" = "无法访问备份目录";
+"alert.backup_access_denied.message" = "您取消了备份目录的选择。如果不需要自动备份功能，可以前往「设置」关闭该选项。";
+"alert.backup_access_denied.go_to_settings" = "前往设置";
+"alert.backup_access_denied.cancel" = "关闭";
+
+/* Settings */
+"settings.title" = "设置";
+"settings.language" = "语言";
+"settings.language.interface" = "界面语言";
+"settings.backup" = "备份";
+"settings.backup.enable" = "启用自动备份";
+"settings.backup.description" = "启用后，在修改文件前会自动创建备份。只有已备份的文件才支持撤回操作。";
+"settings.backup.location" = "备份位置";
+"settings.backup.reset_default" = "重置为默认";
+"settings.backup.change" = "更改...";
+"settings.backup.default_location" = "默认 (桌面/ReTagger)";
+"settings.general" = "常规";
+"settings.general.include_subdirectories" = "扫描包含子目录";
+"settings.general.subdirectories_description" = "启用后，扫描目录时会递归查找所有子文件夹中的音频文件。";
+"settings.logs" = "运行日志";
+"settings.logs.clear" = "清空";
+"settings.logs.description" = "展示最近 500 条请求与处理日志，便于排查配额、网络或写入问题。";
+
+/* Toolbar View */
+"toolbar.track_count" = "%@ · %d 首歌曲";
+"toolbar.track_count_multi" = "%@ · %d 首歌曲";
+"toolbar.track_count_multi_tooltip" = "包含 %d 个目录：\n%@";
+"toolbar.directories_and_more" = " 等 %d 个目录";
+"toolbar.metadata_review" = "元数据审查";
+"toolbar.select_directory" = "请在左侧选择目录";
+
+/* Window Title */
+
+/* Workspace Restore */
+"restore.loading" = "正在恢复工作区…";
+"restore.loading_detail" = "正在加载上次打开的目录，请稍候";
+
+/* Table View */
+"table.selected_count" = "已选中 %d 条曲目";
+"table.batch_apply_hint" = "批量操作将应用到所有选中的文件。";
+"table.item_count" = "%d 条";
+"table.contains" = "包含：";
+"table.and_more" = "… 等 %d 条";
+"table.files_processing" = "%d 个文件正在处理...";
+"table.batch_skip_invalid" = "批量操作将跳过不符合条件的文件。";
+"table.select_all" = "全选";
+"table.original" = "原：%@";
+"table.ai_corrected" = "AI：%@";
+"table.confirmed_recently" = "最近确认 %@";
+"table.writing_progress" = "正在写入 AI 修正... %d%%";
+"table.no_corrections" = "AI 未提供新的修正";
+"table.select_track_hint" = "选择曲目查看 AI 修正详情";
+
+/* Trash Confirmation */
+"trash.confirm_single" = "确定要将「%@」移至废纸篓吗？";
+"trash.confirm_multiple" = "确定要将选中的 %d 个文件移至废纸篓吗？此操作可以在废纸篓中恢复。";
+"trash.continue" = "继续";
+"trash.move_to_trash" = "移至废纸篓";
+
+/* Directory Selection */
+"directory.title" = "选择音频文件或目录";
+"directory.subtitle" = "请选择 %@ 音乐文件或包含它们的文件夹";
+"directory.select_button" = "选择文件/目录";
+"directory.recent" = "最近访问的目录";
+"directory.no_history" = "暂无历史记录";
+"directory.selected" = "已选择:";
+"directory.selected_multiple" = "已选择 %d 个项目";
+"directory.scanning" = "正在扫描";
+"directory.found_files" = "已找到 %d 个音频文件";
+"directory.found_count" = "找到 %d 个音频文件";
+"directory.ready_next" = "准备进入下一步处理元数据";
+"directory.info.recursive" = "支持递归扫描子目录";
+"directory.info.formats" = "自动识别 %@ 格式文件";
+"directory.info.read_tags" = "读取现有的音频标签信息";
+
+/* Sidebar */
+"sidebar.title" = "曲目目录管理器";
+"sidebar.empty_title" = "未选择文件或目录";
+"sidebar.empty_hint" = "请在右侧选择文件或目录";
+"sidebar.recent_title" = "最近访问的目录";
+"sidebar.my_account" = "我的账户";
+"sidebar.remaining_points" = "剩余 %d 点";
+"sidebar.points_tooltip" = "消耗点数进行 AI 智能元数据填充";
+"sidebar.dropped_file_badge" = "拖入";
+"sidebar.no_history" = "暂无历史记录";
+
+/* Auth */
+"auth.title.login" = "登录";
+"auth.title.register" = "注册账户";
+"auth.title.forgot_password" = "重置密码";
+
+/* Conflict Resolution */
+"conflict.title" = "发现 %d 组同名冲突";
+"conflict.title.window" = "解决同名冲突";
+"conflict.guide.text" = "重名文件之间只能保留一个。您可以点击删除图标移去垃圾文件，或点击编辑图标重命名要写入的文件。处理后系统将自动完成写入。";
+"conflict.subtitle" = "以下歌曲在修正后将产生同名，请逐组处理。";
+"conflict.group_type.title_artist" = "同歌手同歌名";
+"conflict.group_type.filename" = "同文件名";
+"conflict.previous_group" = "上一组";
+"conflict.next_group" = "下一组";
+"conflict.close" = "关闭";
+"conflict.close.help" = "关闭冲突解决面板";
+"conflict.new_filename" = "新文件名";
+"conflict.error.empty_filename" = "文件名不能为空";
+"conflict.error.illegal_chars" = "文件名不能包含 / : \\ 字符";
+"conflict.error.conflict_in_group" = "该文件名与其他文件冲突";
+"conflict.error.name_conflict_edit" = "文件名冲突！请修改后重新写入";
+"conflict.filename.confirm" = "确认新文件名";
+"conflict.filename.cancel" = "取消编辑";
+"conflict.filename.double_click" = "双击编辑文件名";
+"conflict.section.tags" = "标签信息";
+"conflict.section.technical" = "技术元信息";
+"conflict.section.preview" = "试听";
+"conflict.section.actions" = "操作";
+"conflict.row.filename" = "文件名";
+"conflict.row.suggested_name" = "AI 建议名";
+"conflict.action.write_keep" = "修正并保留";
+"conflict.action.write_keep.help" = "应用 AI 修正到此文件并保留";
+"conflict.action.delete" = "删除";
+"conflict.action.delete.help" = "将此文件移至废纸篓";
+"conflict.confirm_delete.title" = "确认删除";
+"conflict.confirm_delete.message" = "确定要将「%@」移至废纸篓吗？此操作可以在废纸篓中恢复。";
+"conflict.status.written" = "已修正";
+"conflict.label.existing" = "已有文件";
+"conflict.preview.play" = "试听此文件";
+"conflict.preview.pause" = "暂停试听";
+"conflict.preview.seek" = "拖动调整播放进度";
+
+"auth.email" = "邮箱";
+"auth.password" = "密码";
+"auth.confirm_password" = "确认密码";
+"auth.username.optional" = "用户名 (可选)";
+"auth.login.button" = "登录";
+"auth.register.button" = "注册";
+"auth.sign_in_with_google" = "使用 Google 登录";
+"auth.sign_in_with_apple" = "使用 Apple 登录";
+"auth.forgot_password" = "忘记密码？";
+"auth.register_new" = "注册新账户";
+"auth.have_account" = "已有账户？登录";
+"auth.back_to_login" = "返回登录";
+"auth.send_reset_link" = "发送重置链接";
+"auth.loading.google" = "正在连接 Google...";
+"auth.loading.profile" = "加载用户信息...";
+"auth.logout" = "退出登录";
+"auth.delete_account" = "删除账户";
+"auth.delete_account_confirm" = "确认删除账户";
+"auth.delete_account_warning" = "此操作不可撤销。您的账户及所有相关数据将被永久删除。";
+"auth.delete_account.button" = "删除";
+"auth.cancel" = "取消";
+"auth.retry" = "重试";
+"auth.policy.agree" = "我已阅读并同意";
+"auth.policy.terms" = "服务条款";
+"auth.policy.privacy" = "隐私政策";
+"auth.password.min_length" = "密码长度至少为 %d 位";
+"auth.error.password_mismatch" = "两次输入的密码不一致";
+"auth.error.policy_required" = "请阅读并同意服务条款和隐私政策";
+"auth.reset_hint" = "输入您的注册邮箱，我们将向您发送重置密码的链接。";
+"auth.reset_success" = "重置链接已发送，请检查您的邮箱。";
+"auth.verification.banner" = "邮箱未验证";
+"auth.verification.resend" = "重发验证邮件";
+"auth.verification.sent" = "验证邮件已发送，请检查您的邮箱";
+"auth.verification.verified_tooltip" = "邮箱已验证";
+
+/* Columns */
+"column.filename" = "文件名";
+"column.title" = "标题";
+"column.artist" = "艺术家";
+"column.album" = "专辑";
+"column.genre" = "风格";
+"column.year" = "年份";
+"column.status" = "状态";
+"column.duration" = "时长";
+"column.filesize" = "大小";
+"column.bitrate" = "位速率";
+"column.samplerate" = "采样速率";
+"column.format" = "格式";
+"column.created" = "创建日期";
+"column.modified" = "修改日期";
+
+/* Processing States */
+"state.pending" = "未处理";
+"state.processing" = "处理中";
+"state.awaiting_confirmation" = "待确认";
+"state.completed" = "已完成";
+"state.failed" = "失败";
+"state.user_modified" = "用户修改";
+/* Playback */
+"playback.queue.title" = "播放队列";
+"playback.queue.count" = "%d 首歌曲";
+"playback.queue.empty" = "队列为空，双击文件开始播放。";
+"playback.queue.close" = "关闭队列";
+"playback.queue.play_here" = "从此处播放";
+"playback.queue.remove" = "从队列移除";
+"playback.tooltip.previous" = "上一首";
+"playback.tooltip.play" = "播放";
+"playback.tooltip.pause" = "暂停";
+"playback.tooltip.next" = "下一首";
+"playback.tooltip.shuffle_on" = "切换为随机播放";
+"playback.tooltip.shuffle_off" = "切换为顺序播放";
+"playback.tooltip.show_queue" = "显示播放队列";
+"playback.tooltip.repeat_off" = "循环：关闭（点击开启列表循环）";
+"playback.tooltip.repeat_all" = "循环：列表循环（点击切换单曲循环）";
+"playback.tooltip.repeat_one" = "循环：单曲循环（点击关闭）";
+"playback.tooltip.volume" = "音量";
+"playback.track.none" = "未播放";
+"playback.status.playing" = "播放中";
+"playback.status.selected" = "已选择";
+"playback.track.select" = "请选择音频文件";
+
+/* Search */
+"search.placeholder" = "过滤曲目...";
+
+/* Column Configuration */
+"header.menu.auto_size" = "自动调整列宽";
+"header.menu.auto_size_all" = "自动调整所有列宽";
+"header.menu.manage_columns" = "管理列...";
+"header.menu.restore_defaults" = "恢复默认设置";
+"config.title" = "列配置";
+"config.mandatory_column" = "此列为必选项，无法隐藏";
+"config.hide_column_hint" = "点击隐藏列";
+"config.show_column_hint" = "点击显示列";
+"config.drag_reorder_hint" = "拖拽调整顺序";
+"config.restore_defaults" = "恢复默认";
+"config.restore_help" = "将列配置重置为默认状态";
+"config.apply" = "应用";
+"config.save_help" = "保存并应用更改";
+
+/* Software Update */
+"update.check_for_updates" = "检查更新...";
+"update.checking" = "正在检查更新...";
+"update.up_to_date" = "当前已是最新版本";
+"update.current_version" = "当前版本：%@";
+"update.available_title" = "有新版本可用";
+"update.available_message" = "ReTagger %@ 现已可用，您当前的版本是 %@。";
+"update.go_to_app_store" = "前往 App Store 更新";
+"update.remind_later" = "稍后提醒";
+"update.release_notes" = "更新说明";
+"update.error" = "检查更新失败";
+"update.retry" = "重试";
+
+"error.playback.unsupported_dsd" = "暂不支持播放 DSD (DSF/DFF) 格式的音频。此格式常为母带级 SACD/DSD 文件，内置播放器无法直接播放，但您可以正常通过 AI 整理和保存元数据标签。";
+"action.clear_all_history" = "清除所有历史记录";
+
+/* Settings Tab Labels */
+"settings.tab.general" = "常规";
+"settings.tab.processing" = "处理";
+"settings.tab.backup" = "安全与备份";
+"settings.tab.update" = "更新";
+"settings.tab.logs" = "诊断";
+"settings.tab.flame" = "火焰效果";
+
+/* Settings General Tab */
+"settings.general.language" = "界面语言：";
+"settings.general.restore_directory" = "启动时恢复上次目录";
+
+/* Settings Processing Tab */
+"settings.processing.include_subdirectories" = "扫描时包含子目录";
+"settings.processing.rename_format" = "文件重命名格式：";
+"settings.processing.rename_warning" = "警告：仅使用歌名会显著增加文件重名及被覆盖的风险，请谨慎使用。";
+"settings.processing.format.title_artist" = "歌名 - 歌手 (默认)";
+"settings.processing.format.artist_title" = "歌手 - 歌名";
+"settings.processing.format.title_only" = "仅歌名";
+
+/* Settings Backup Tab */
+"settings.backup.auto_backup" = "修改前自动备份文件";
+"settings.backup.location_label" = "备份位置：";
+
+/* Settings Logs Tab */
+"settings.logs.title" = "运行日志";
+"settings.logs.clear_button" = "清空日志";
+"logs.level.info" = "信息";
+"logs.level.warning" = "警告";
+"logs.level.error" = "错误";
+
+/* Settings Update Tab */
+"settings.update.auto_check" = "自动检查更新";
+"settings.update.check_frequency" = "检查频率：";
+"settings.update.auto_prompt" = "发现新版本时自动提示";
+"settings.update.current_version_label" = "当前版本：";
+"settings.update.last_check_label" = "上次检查：";
+"settings.update.never_checked" = "从未检查";
+"settings.update.check_now" = "立即检查更新";
+"settings.update.interval.daily" = "每天";
+"settings.update.interval.weekly" = "每周";
+"settings.update.interval.monthly" = "每月";
+
+/* Settings Flame Tab */
+"settings.flame.preview_title" = "效果实时预览";
+"settings.flame.color_mode" = "开启“纯火热”色彩模式";
+"settings.flame.color_mode.help" = "将经典绿黄红频谱替换为温度渐变的火红色谱";
+"settings.flame.continuous" = "开启连续渐变渲染模式";
+"settings.flame.continuous.help" = "关闭 LED 格子暗缝，渲染为如流水般顺滑的流体渐变波";
+"settings.flame.dual_channel" = "开启左右声道独立双轨展示";
+"settings.flame.dual_channel.help" = "分别分析并排显示左、右声道的独立音频波动";
+
+/* Menu Commands */
+"menu.about" = "关于 ReTagger";
+
+/* Settings Merged Tabs & Groups */
+"settings.tab.general_update" = "通用与更新";
+"settings.tab.processing_backup" = "扫描与备份";
+"settings.tab.visuals" = "视觉效果";
+"settings.group.general" = "基础偏好";
+"settings.group.update" = "软件更新";
+"settings.group.scan" = "目录扫描";
+"settings.group.rename" = "命名格式";
+"settings.group.backup" = "安全与备份";
+
+/* AI Error Localizations */
+"error.ai.rate_limit.authenticated" = "AI 打标签失败（频率限制 429）。当前账户额度已用尽，请充值或明日再试。";
+"error.ai.rate_limit.guest" = "AI 打标签失败（频率限制 429）。今日免费额度已用尽，请登录或稍后再试。";
+"error.ai.client_error" = "AI 打标签失败（请求错误 %d）。\n详情：%@";
+"error.ai.server_error" = "AI 打标签失败（服务端错误 %d）。\n详情：%@";
+"error.ai.unknown_code" = "AI 打标签失败（未知状态码 %d）。\n详情：%@";
+"error.ai.processing_failed" = "AI 打标签失败。\n详情：%@";
+"error.ai.generic_exception" = "AI 打标签发生异常。\n错误信息：%@";
+
+/* Added by Antigravity for Internationalization */
+"conflict.guide.part1" = "冲突解决指南：重名文件之间只能保留一个。您可以直接点击 ";
+"conflict.guide.part2" = " 移去多余文件，或在输入框中修改文件名并点击旁边的 ";
+"conflict.guide.part3" = " 确认写入。";
+"conflict.resolved_all" = "所有冲突已解决";
+"conflict.badge.title" = "歌名";
+"conflict.badge.artist" = "歌手";
+"conflict.badge.album" = "专辑";
+"conflict.badge.year" = "年份";
+"conflict.badge.none" = "无";
+
+"review.progress.writing_ai" = "正在写入 AI 修正... %d%%";
+"review.empty.select_directory" = "请在左侧选择目录";
+"review.empty.no_audio_files" = "该目录下没有支持的音频文件";
+"review.empty.tip" = "💡 提示：为获得最佳体验并减少权限弹窗，建议直接拖拽整张专辑所在文件夹，而非零散单曲。";
+"review.restore.workspace" = "正在恢复上次的工作区…";
+"review.restore.skip" = "跳过恢复";
+"review.trash.confirm_title" = "确认移至废纸篓";
+"review.trash.confirm_single" = "确定要将 \"%@\" 移至废纸篓吗？";
+"review.trash.confirm_multiple" = "确定要将选中的 %d 个文件移至废纸篓吗？此操作可以在废纸篓中恢复。";
+"common.continue" = "继续";
+"common.move_to_trash" = "移至废纸篓";
+
+"review.bulk.ai_process.title" = "确认批量 AI 打标签";
+"review.bulk.confirm_write.title" = "确认批量写入";
+"review.bulk.ai_process.message" = "即将对 %d 条曲目执行 AI 打标签，是否继续？";
+"review.bulk.confirm_write.message" = "即将为 %d 条曲目写入 AI 修正，是否继续？";
+
+/* === 通用按钮 === */
+"common.ok" = "确定";
+"common.retry" = "重试";
+"common.skip" = "跳过";
+
+/* === 账户状态 === */
+"account.status.authenticated" = "当前账户";
+"account.status.guest" = "游客模式";
+
+/* === 认证补充 === */
+"auth.apple_credential_missing" = "无法获取 Apple ID 凭证";
+"auth.authorization_code_missing" = "无法获取授权码";
+"auth.resending" = "发送中...";
+"auth.google_login_title" = "Google 登录";
+
+/* === 兑换码 === */
+"redeem.title" = "兑换码激活";
+"redeem.code_placeholder" = "输入兑换码";
+"redeem.activate" = "激活";
+"redeem.success_with_value" = "兑换成功！获得 %d 点数，当前余额：%d";
+"redeem.success" = "兑换成功！当前余额：%d";
+
+/* === 用户资料 === */
+"profile.remaining_credits" = "剩余点数";
+"profile.load_failed" = "加载用户信息失败：%@";
+
+/* === 内购商店 === */
+"store.buy_credits" = "购买点数";
+"store.current_balance" = "当前余额：";
+"store.credits_unit" = "点";
+"store.loading_products" = "加载商品中...";
+"store.no_products" = "暂无可用商品";
+"store.sync_pending_orders" = "同步未到账订单";
+"store.sync_pending_orders_hint" = "检测到付款成功但点数未到账的订单，点击重新同步";
+"store.recommended" = "推荐";
+
+/* === AI 错误补充 === */
+"error.ai.invalid_request_payload" = "请求数据格式有误或配置无效，请检查后重试。";
+"error.ai.service_overloaded" = "AI 大模型服务当前处于高负载状态或暂时不可用，请稍后再试。";
+
+/* === 侧边栏/表格补充 === */
+"sidebar.remove_from_history" = "从历史中移除";
+"table.edit_tooltip" = "编辑";
+"review.detail_resize_hint" = "拖动以调整详情面板高度，双击恢复默认";
+
+/* === 错误弹窗（ErrorPresenter） === */
+"error_alert.filesystem.message" = "操作文件系统时发生错误：%@";
+"error_alert.permission.title" = "需要访问权限";
+"error_alert.permission.message" = "ReTagger 需要访问 “%@” 以继续操作。\n\n请授予文件访问权限，或选择其他目录。";
+"error_alert.metadata_read.message" = "无法从文件 “%@” 读取音频元数据。\n\n可能原因：\n• 文件损坏或格式不正确\n• 文件不包含可识别的标签信息\n• 文件编码不支持\n\n建议：跳过此文件或使用其他工具修复。";
+"error_alert.metadata_write.title" = "无法写入元数据";
+"error_alert.metadata_write.message" = "无法将元数据写入文件 “%@”。\n\n可能原因：\n• 文件被其他应用程序占用\n• 没有写入权限\n• 磁盘空间不足\n\n建议：关闭其他音乐播放器后重试。";
+"error_alert.unsupported_format.message" = "AVFoundation 无法直接写入 “%@” 的音频标签。\n\n该文件可能使用了变种编码或特殊结构，需使用 TagLib 等更完整的标签库处理。\n\n建议：暂时跳过此文件，或等待后续写入模块更新后重试。";
+"error_alert.network.title" = "网络错误";
+"error_alert.network.message" = "网络请求失败：%@\n\n请检查：\n• 网络连接是否正常\n• 后端服务器是否可访问\n• 防火墙设置是否阻止连接";
+"error_alert.api.title" = "API 错误 (%d)";
+"error_alert.invalid_response.title" = "无效响应";
+"error_alert.invalid_response.message" = "服务器返回的数据格式不正确。\n\n可能原因：\n• API 版本不匹配\n• 服务器配置错误\n• 网络传输中数据损坏\n\n建议：检查应用是否为最新版本。";
+"error_alert.ai_failed.title" = "AI 打标签失败";
+"error_alert.ai_failed.message" = "AI 处理元数据时发生错误：%@\n\n可能原因：\n• AI 服务暂时不可用\n• 输入数据格式异常\n• API 配额已用完\n\n建议：稍后重试或切换其他 AI 引擎。";
+"error_alert.backup_failed.title" = "备份失败";
+"error_alert.backup_failed.message" = "无法创建文件 “%@” 的备份。\n\n建议检查备份目录权限或磁盘空间。\n\n是否要在无备份的情况下继续修改文件？（不推荐）";
+"error_alert.backup_failed.cancel" = "取消操作";
+"error_alert.backup_failed.continue" = "无备份继续";
+"error_alert.invalid_settings.title" = "设置无效";
+"error_alert.invalid_settings.message" = "应用设置存在问题：%@\n\n请检查并更正设置后继续。";
+"error_alert.invalid_settings.open_settings" = "打开设置";
+"error_alert.cancelled.title" = "操作已取消";

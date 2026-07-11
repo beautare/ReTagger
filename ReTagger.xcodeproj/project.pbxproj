@@ -1,0 +1,730 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B921E2092F52EC3E0032917F /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B921E2082F52EC3E0032917F /* StoreKit.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B98EBCEE2E92BD5D00657B32 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B98EBCD82E92BD5B00657B32 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B98EBCDF2E92BD5B00657B32;
+			remoteInfo = ReTagger;
+		};
+		B98EBCF82E92BD5D00657B32 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B98EBCD82E92BD5B00657B32 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B98EBCDF2E92BD5B00657B32;
+			remoteInfo = ReTagger;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		B921E2082F52EC3E0032917F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		B98EBCE02E92BD5B00657B32 /* ReTagger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReTagger.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B98EBCED2E92BD5D00657B32 /* ReTaggerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ReTaggerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B98EBCF72E92BD5D00657B32 /* ReTaggerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ReTaggerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B908D4DE2F173ACF00271504 /* Exceptions for "ReTagger" folder in "ReTagger" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Support/TagLib/libtag_c.2.1.1.dylib,
+				Support/TagLib/libtag_c.2.dylib,
+				Support/TagLib/libtag.2.1.1.dylib,
+				Support/TagLib/libtag.2.dylib,
+			);
+			target = B98EBCDF2E92BD5B00657B32 /* ReTagger */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		B98EBCE22E92BD5B00657B32 /* ReTagger */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B908D4DE2F173ACF00271504 /* Exceptions for "ReTagger" folder in "ReTagger" target */,
+			);
+			path = ReTagger;
+			sourceTree = "<group>";
+		};
+		B98EBCF02E92BD5D00657B32 /* ReTaggerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ReTaggerTests;
+			sourceTree = "<group>";
+		};
+		B98EBCFA2E92BD5D00657B32 /* ReTaggerUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ReTaggerUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B98EBCDD2E92BD5B00657B32 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B921E2092F52EC3E0032917F /* StoreKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B98EBCEA2E92BD5D00657B32 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B98EBCF42E92BD5D00657B32 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B921E2072F52EC3E0032917F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B921E2082F52EC3E0032917F /* StoreKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B98EBCD72E92BD5B00657B32 = {
+			isa = PBXGroup;
+			children = (
+				B98EBCE22E92BD5B00657B32 /* ReTagger */,
+				B98EBCF02E92BD5D00657B32 /* ReTaggerTests */,
+				B98EBCFA2E92BD5D00657B32 /* ReTaggerUITests */,
+				B921E2072F52EC3E0032917F /* Frameworks */,
+				B98EBCE12E92BD5B00657B32 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B98EBCE12E92BD5B00657B32 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B98EBCE02E92BD5B00657B32 /* ReTagger.app */,
+				B98EBCED2E92BD5D00657B32 /* ReTaggerTests.xctest */,
+				B98EBCF72E92BD5D00657B32 /* ReTaggerUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B98EBCDF2E92BD5B00657B32 /* ReTagger */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B98EBD012E92BD5D00657B32 /* Build configuration list for PBXNativeTarget "ReTagger" */;
+			buildPhases = (
+				B98EBCDC2E92BD5B00657B32 /* Sources */,
+				B98EBCDD2E92BD5B00657B32 /* Frameworks */,
+				B98EBCDE2E92BD5B00657B32 /* Resources */,
+				B9E9F1012F10000000000001 /* EmbedDotEnvLocal */,
+				B9A6819C2F0FC1F900F6B4A2 /* EnsureTagLibSymlinks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B98EBCE22E92BD5B00657B32 /* ReTagger */,
+			);
+			name = ReTagger;
+			packageProductDependencies = (
+			);
+			productName = ReTagger;
+			productReference = B98EBCE02E92BD5B00657B32 /* ReTagger.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B98EBCEC2E92BD5D00657B32 /* ReTaggerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B98EBD042E92BD5D00657B32 /* Build configuration list for PBXNativeTarget "ReTaggerTests" */;
+			buildPhases = (
+				B98EBCE92E92BD5D00657B32 /* Sources */,
+				B98EBCEA2E92BD5D00657B32 /* Frameworks */,
+				B98EBCEB2E92BD5D00657B32 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B98EBCEF2E92BD5D00657B32 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B98EBCF02E92BD5D00657B32 /* ReTaggerTests */,
+			);
+			name = ReTaggerTests;
+			packageProductDependencies = (
+			);
+			productName = ReTaggerTests;
+			productReference = B98EBCED2E92BD5D00657B32 /* ReTaggerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B98EBCF62E92BD5D00657B32 /* ReTaggerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B98EBD072E92BD5D00657B32 /* Build configuration list for PBXNativeTarget "ReTaggerUITests" */;
+			buildPhases = (
+				B98EBCF32E92BD5D00657B32 /* Sources */,
+				B98EBCF42E92BD5D00657B32 /* Frameworks */,
+				B98EBCF52E92BD5D00657B32 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B98EBCF92E92BD5D00657B32 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B98EBCFA2E92BD5D00657B32 /* ReTaggerUITests */,
+			);
+			name = ReTaggerUITests;
+			packageProductDependencies = (
+			);
+			productName = ReTaggerUITests;
+			productReference = B98EBCF72E92BD5D00657B32 /* ReTaggerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B98EBCD82E92BD5B00657B32 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					B98EBCDF2E92BD5B00657B32 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					B98EBCEC2E92BD5D00657B32 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = B98EBCDF2E92BD5B00657B32;
+					};
+					B98EBCF62E92BD5D00657B32 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = B98EBCDF2E92BD5B00657B32;
+					};
+				};
+			};
+			buildConfigurationList = B98EBCDB2E92BD5B00657B32 /* Build configuration list for PBXProject "ReTagger" */;
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = B98EBCD72E92BD5B00657B32;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = B98EBCE12E92BD5B00657B32 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B98EBCDF2E92BD5B00657B32 /* ReTagger */,
+				B98EBCEC2E92BD5D00657B32 /* ReTaggerTests */,
+				B98EBCF62E92BD5D00657B32 /* ReTaggerUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B98EBCDE2E92BD5B00657B32 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B98EBCEB2E92BD5D00657B32 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B98EBCF52E92BD5D00657B32 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B9E9F1012F10000000000001 /* EmbedDotEnvLocal */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.env.local",
+			);
+			name = EmbedDotEnvLocal;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/.env.local",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\n\nENV_FILE=\"${SRCROOT}/.env.local\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n\nif [ -f \"${ENV_FILE}\" ]; then\n  mkdir -p \"${DEST_DIR}\"\n  cp -f \"${ENV_FILE}\" \"${DEST_DIR}/.env.local\"\nelse\n  echo \"warning: ${ENV_FILE} 不存在，App 包内不含 .env.local，Google 登录等依赖该配置的功能将不可用\"\nfi\n";
+		};
+		B9A6819C2F0FC1F900F6B4A2 /* EnsureTagLibSymlinks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(PROJECT_DIR)/ReTagger/Support/TagLib/libtag.2.1.1.dylib",
+				"$(PROJECT_DIR)/ReTagger/Support/TagLib/libtag_c.2.1.1.dylib",
+			);
+			name = EnsureTagLibSymlinks;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libtag.2.1.1.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libtag.2.1.1.dylib.cstemp",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libtag.2.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libtag.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libtag_c.2.1.1.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libtag_c.2.1.1.dylib.cstemp",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libtag_c.2.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libtag_c.dylib",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\n\nASSET_ROOT=\"${PROJECT_DIR}/ReTagger/Support/TagLib\"\nFRAMEWORKS_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nmkdir -p \"${FRAMEWORKS_DIR}\"\n\ncopy_and_link() {\n  local name=\"$1\"\n  local source=\"${ASSET_ROOT}/${name}.2.1.1.dylib\"\n  if [ ! -f \"${source}\" ]; then\n    echo \"error: 缺少库文件 ${source}\" >&2\n    exit 1\n  fi\n\n  local dest=\"${FRAMEWORKS_DIR}/${name}.2.1.1.dylib\"\n  cp -f \"${source}\" \"${dest}\"\n  chmod 755 \"${dest}\"\n\n  ln -fhs \"${name}.2.1.1.dylib\" \"${FRAMEWORKS_DIR}/${name}.2.dylib\"\n  ln -fhs \"${name}.2.1.1.dylib\" \"${FRAMEWORKS_DIR}/${name}.dylib\"\n\n  if [ \"${CODE_SIGNING_ALLOWED:-YES}\" = \"YES\" ] && [ -n \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ] && [ \"${EXPANDED_CODE_SIGN_IDENTITY}\" != \"-\" ]; then\n    /usr/bin/codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${dest}\"\n  fi\n}\n\ncopy_and_link libtag\ncopy_and_link libtag_c\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B98EBCDC2E92BD5B00657B32 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B98EBCE92E92BD5D00657B32 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B98EBCF32E92BD5D00657B32 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B98EBCEF2E92BD5D00657B32 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B98EBCDF2E92BD5B00657B32 /* ReTagger */;
+			targetProxy = B98EBCEE2E92BD5D00657B32 /* PBXContainerItemProxy */;
+		};
+		B98EBCF92E92BD5D00657B32 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B98EBCDF2E92BD5B00657B32 /* ReTagger */;
+			targetProxy = B98EBCF82E92BD5D00657B32 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		B98EBCFF2E92BD5D00657B32 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L2GSNW7RA2;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B98EBD002E92BD5D00657B32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = L2GSNW7RA2;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		B98EBD022E92BD5D00657B32 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ReTagger/ReTagger.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 2607052328;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = L2GSNW7RA2;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ReTagger/Support/TagLib/include",
+					/opt/homebrew/include,
+				);
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ReTagger/Support/TagLib",
+					/opt/homebrew/lib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MARKETING_VERSION = 1.10.2;
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = vip.retagger.macapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ReTagger/Support/ReTagger-Bridging-Header.h";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		B98EBD032E92BD5D00657B32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ReTagger/ReTagger.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 2607052328;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = L2GSNW7RA2;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ReTagger/Support/TagLib/include",
+					/opt/homebrew/include,
+				);
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ReTagger/Support/TagLib",
+					/opt/homebrew/lib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MARKETING_VERSION = 1.10.2;
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = vip.retagger.macapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ReTagger/Support/ReTagger-Bridging-Header.h";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B98EBD052E92BD5D00657B32 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = L2GSNW7RA2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = vip.retagger.macapp.ReTaggerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ReTagger.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ReTagger";
+			};
+			name = Debug;
+		};
+		B98EBD062E92BD5D00657B32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = L2GSNW7RA2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = vip.retagger.macapp.ReTaggerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ReTagger.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ReTagger";
+			};
+			name = Release;
+		};
+		B98EBD082E92BD5D00657B32 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = L2GSNW7RA2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = vip.retagger.macapp.ReTaggerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = ReTagger;
+			};
+			name = Debug;
+		};
+		B98EBD092E92BD5D00657B32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = L2GSNW7RA2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = vip.retagger.macapp.ReTaggerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = ReTagger;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B98EBCDB2E92BD5B00657B32 /* Build configuration list for PBXProject "ReTagger" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B98EBCFF2E92BD5D00657B32 /* Debug */,
+				B98EBD002E92BD5D00657B32 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B98EBD012E92BD5D00657B32 /* Build configuration list for PBXNativeTarget "ReTagger" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B98EBD022E92BD5D00657B32 /* Debug */,
+				B98EBD032E92BD5D00657B32 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B98EBD042E92BD5D00657B32 /* Build configuration list for PBXNativeTarget "ReTaggerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B98EBD052E92BD5D00657B32 /* Debug */,
+				B98EBD062E92BD5D00657B32 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B98EBD072E92BD5D00657B32 /* Build configuration list for PBXNativeTarget "ReTaggerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B98EBD082E92BD5D00657B32 /* Debug */,
+				B98EBD092E92BD5D00657B32 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B98EBCD82E92BD5B00657B32 /* Project object */;
+}

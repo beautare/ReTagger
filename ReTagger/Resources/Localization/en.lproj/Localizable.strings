@@ -1,0 +1,569 @@
+/* Common Text */
+"common.error" = "Error";
+"common.cancel" = "Cancel";
+"common.delete" = "Delete";
+"common.and" = "and";
+"common.or" = " or ";
+"common.comma" = ", ";
+"common.got_it" = "Got It";
+"common.unknown_artist" = "Unknown Artist";
+"common.unknown_album" = "Unknown Album";
+
+/* Status Text */
+"status.pending" = "Pending";
+"status.loading" = "Loading...";
+"status.processing" = "Processing...";
+"status.scanning_files" = "Scanning files...";
+"status.connecting" = "Connecting to server...";
+"status.sending" = "Sending...";
+
+/* Action Buttons */
+/* Action Buttons */
+"action.view_file" = "View File";
+"action.continue_without_backup" = "Continue Without Backup";
+"action.change" = "Change...";
+"action.reveal_in_finder" = "Reveal in Finder";
+"action.copy_path" = "Copy File Path";
+"action.restore_default_columns" = "Restore default column configuration";
+"action.confirm_write" = "Confirm Write";
+"action.no_pending_confirmations" = "No pending AI corrections to confirm";
+"action.play" = "Play";
+"action.discard" = "Discard";
+"action.retry_ai" = "Retry AI";
+"action.reprocess_ai" = "Re-tag with AI";
+"action.settings" = "Settings";
+"action.restart" = "Restart";
+"action.add_folder" = "Add Files/Folders";
+"action.history" = "History";
+"action.remove_directory" = "Remove directory";
+"action.close_all" = "Close all directories";
+"action.undo" = "Undo";
+"action.undo_short" = "Undo";
+"action.write_short" = "Write";
+"action.discard_short" = "Discard";
+"table.item_count" = "%d items";
+
+/* Column Configuration */
+"config.restore_defaults" = "Restore Defaults";
+"config.apply" = "Apply";
+"config.mandatory_column" = "Mandatory column cannot be hidden";
+"config.hide_column_hint" = "Click to hide column";
+"config.show_column_hint" = "Click to show column";
+"config.drag_reorder_hint" = "Drag to reorder";
+"config.save_help" = "Save and apply configuration";
+"config.restore_help" = "Restore default configuration";
+
+/* AI Related */
+"ai.tagging" = "AI Tagging";
+"ai.tagging_failed" = "AI tagging failed";
+"ai.no_corrections" = "AI did not provide new suggestions";
+"ai.retry" = "Retry AI";
+"ai.retag" = "Repeat AI tagging";
+"ai.confirm_batch" = "Confirm batch AI tagging";
+"ai.corrections_applied" = "AI corrections applied successfully";
+"ai.app_subtitle" = "AI Music Tagging Assistant";
+"ai.processing_with_gemini" = "Processing metadata via Gemini";
+"ai.select_track_for_details" = "Select a track to view AI changes";
+"ai.write_all_pending" = "Write all pending AI changes to files";
+"ai.tag_all_tracks" = "Run AI tagging for every track in the list";
+"ai.processed_count" = "Processed %d/%d files";
+"ai.batch_progress" = "Batch %d/%d";
+"ai.success_count" = "Successfully processed %d files";
+"ai.partial_permission_error" = "%d files could not be processed due to permissions. Please review access rights.";
+
+/* Authentication */
+"auth.sign_in_register" = "Sign In / Register";
+"auth.sign_in_with_google" = "Sign in with Google";
+"auth.username_optional" = "Username (optional)";
+"auth.email_not_verified" = "Email Not Verified";
+"auth.resend_verification" = "Resend Verification Email";
+"auth.verification_sent" = "Verification email sent, please check your inbox";
+"auth.check_email_for_verification" = "Please check your email at %@ and click the verification link to complete registration.";
+"auth.registration_success" = "Registration Successful!";
+"auth.verification_sent_to" = "Verification email sent to:";
+"auth.check_email_with_spam" = "Please check your email (including spam folder) and click the link to complete verification.";
+"auth.password_min_length" = "Password must be at least %d characters";
+"auth.agree_to_terms" = "I have read and agree to the";
+"auth.terms_of_service" = "Terms of Service";
+"auth.privacy_policy" = "Privacy Policy";
+"auth.agree_to_terms_required" = "Please read and agree to the Terms of Service and Privacy Policy";
+"auth.confirm_delete_account" = "Confirm Account Deletion";
+"auth.delete_account_warning" = "This action cannot be undone. Your account and all related data will be permanently deleted.";
+"auth.delete_account" = "Delete Account";
+"auth.email_verified" = "Email Verified";
+
+/* Errors */
+"error.title" = "Error";
+"error.filesystem" = "File System Error";
+"error.metadata_read_failed" = "Unable to read metadata";
+"error.user_cancelled" = "The operation was cancelled by the user.";
+"error.write_not_supported" = "This file format cannot be written yet";
+"error.no_audio_files" = "No supported audio files were found";
+"error.track_removed" = "The track was removed and can no longer be undone.";
+"error.unknown" = "An unknown error occurred. Please try again later.";
+"error.rate_limit" = "Too many requests, please try again later.";
+"error.access_denied" = "Access denied, please check your account permissions.";
+"error.server_error" = "Server error, please contact support.";
+"error.invalid_request" = "Invalid request format, please verify the data.";
+"error.network_unavailable" = "Unable to connect to the server, please check your network or try again.";
+"error.auth_failed" = "Authentication failed, please check your email and password.";
+"error.forgot_password_hint" = "Enter your registered email and we'll send you a reset link.";
+"error.unparseable_response" = "The server returned unreadable data. Please update the app or try again later.";
+"error.unauthorized" = "Unauthorized - please verify the API key.";
+"error.endpoint_not_found" = "Service endpoint not found, please check the backend URL.";
+"error.move_to_trash" = " Move to Trash?";
+
+/* File System */
+"filesystem.select_directory.message" = "Please choose supported audio files or a folder containing audio files";
+"filesystem.select_directory.confirm" = "Select";
+"filesystem.backup_permission_prompt" = "ReTagger needs access to the \"%@\" folder to store backups. Please grant permission in the panel.";
+"filesystem.request_access.message" = "Please select a folder to grant access";
+"filesystem.request_access.confirm" = "Choose";
+"filesystem.backup_root_permission_prompt" = "ReTagger needs access to the \"%@\" backup folder. Please select it to grant permanent access.";
+
+/* Permissions */
+"permission.directory_reauth_prompt" = "ReTagger needs access to \"%@\". Please re-select the folder in the panel.";
+"permission.directory_reauth_prompt_brackets" = "ReTagger needs access to [%@]. Please re-select the folder in the panel.";
+"permission.request_directory" = "The app requires access to \"%@\". Please grant permission.";
+
+/* Errors with parameters */
+"error.history_directory_denied" = "Unable to access history entry: %@";
+"error.history_directory_missing" = "History entry no longer exists: %@";
+"error.directory_denied_path" = "Sandbox access permission was not granted. To process this file, please add it again and grant permission for the directory.";
+"error.directory_moved_or_deleted" = "Directory has been moved or deleted: %@";
+"error.load_files_failed" = "Failed to load files: %@";
+"error.directory_access_missing" = "Missing permission for directory: %@";
+"error.trash_permission_denied" = "Cannot move %@ to Trash: missing write permission. Please grant access in Finder.";
+"error.trash_failed" = "Failed to move %@ to Trash: %@";
+"error.scan_directory_failed" = "Failed to scan directory: %@";
+"error.ai_processing_failed" = "AI processing failed: %@";
+"error.write.unsupported_format" = "%@ cannot be written with the current format";
+"error.write.failed_permission" = "%@ failed to write (please ensure the file is writable and not in use)";
+"error.write.filesystem" = "%@: %@";
+"error.write.permission_denied" = "%@ is missing access permission";
+"error.write.generic" = "%@: %@";
+"error.write.failed_generic" = "Write failed: %@";
+"error.undo.selection_required" = "Select at least one track that can be undone.";
+"error.undo.no_record" = "No undo record is available for this track.";
+"error.undo.failed" = "Failed to undo: %@";
+"error.confirmation.not_needed" = "This track no longer requires confirmation.";
+"error.confirmation.no_fields" = "No writable fields are available for this track.";
+"error.confirmation.field_selection_required" = "Select at least one field to write.";
+"error.confirmation.selection_required" = "Select at least one track to confirm.";
+"error.backup.access_denied" = "Unable to access the backup directory. Operation cancelled.";
+"error.batch.partial_write_failure" = "Some tracks failed to write: %@";
+"error.insufficient_credits" = "Insufficient credits: %d required, %@ has %d remaining. Please sign in or top up.";
+
+/* Backup Access Denied Guidance */
+"alert.backup_access_denied.title" = "Cannot Access Backup Directory";
+"alert.backup_access_denied.message" = "You cancelled the backup directory selection. If you don't need the auto-backup feature, you can disable it in Settings.";
+"alert.backup_access_denied.go_to_settings" = "Go to Settings";
+"alert.backup_access_denied.cancel" = "Close";
+
+/* Settings */
+"settings.title" = "Settings";
+"settings.language" = "Language";
+"settings.language.interface" = "Interface Language";
+"settings.backup" = "Backup";
+"settings.backup.enable" = "Enable Auto Backup";
+"settings.backup.description" = "When enabled, a backup is created before writing so that undo is available.";
+"settings.backup.location" = "Backup Location";
+"settings.backup.reset_default" = "Reset to Default";
+"settings.backup.change" = "Change...";
+"settings.backup.default_location" = "Default (Desktop/ReTagger)";
+"settings.general" = "General";
+"settings.general.include_subdirectories" = "Include Subdirectories";
+"settings.general.subdirectories_description" = "When enabled, scans also include all subfolders.";
+"settings.logs" = "Activity Logs";
+"settings.logs.clear" = "Clear";
+"settings.logs.description" = "Shows recent 500 request and processing logs for troubleshooting quota, network, or write issues.";
+
+/* Toolbar View */
+"toolbar.track_count" = "%@ · %d tracks";
+"toolbar.track_count_multi" = "%@ · %d tracks";
+"toolbar.track_count_multi_tooltip" = "%d directories:\n%@";
+"toolbar.directories_and_more" = " and %d more";
+"toolbar.metadata_review" = "Metadata Review";
+"toolbar.select_directory" = "Select a directory on the left";
+
+/* Window Title */
+
+/* Workspace Restore */
+"restore.loading" = "Restoring workspace…";
+"restore.loading_detail" = "Loading previously opened directories, please wait";
+
+/* Table View */
+"table.selected_count" = "%d tracks selected";
+"table.batch_apply_hint" = "Batch operations will apply to all selected files.";
+"table.item_count" = "%d items";
+"table.contains" = "Contains:";
+"table.and_more" = "… and %d more";
+"table.files_processing" = "%d files processing...";
+"table.batch_skip_invalid" = "Batch operations will skip invalid files.";
+"table.select_all" = "Select All";
+"table.original" = "Original: %@";
+"table.ai_corrected" = "AI: %@";
+"table.confirmed_recently" = "Confirmed %@";
+"table.writing_progress" = "Writing AI corrections... %d%%";
+"table.no_corrections" = "No new AI corrections available";
+"table.select_track_hint" = "Select a track to view AI correction details";
+
+/* Trash Confirmation */
+"trash.confirm_single" = "Are you sure you want to move \"%@\" to Trash?";
+"trash.confirm_multiple" = "Are you sure you want to move %d selected files to Trash? This can be undone from the Trash.";
+"trash.continue" = "Continue";
+"trash.move_to_trash" = "Move to Trash";
+
+/* Directory Selection */
+"directory.title" = "Select Audio Files or Directory";
+"directory.subtitle" = "Please select %@ music files or a folder containing them";
+"directory.select_button" = "Select Files/Folders";
+"directory.recent" = "Recent Directories";
+"directory.no_history" = "No recent history";
+"directory.selected" = "Selected:";
+"directory.selected_multiple" = "%d items selected";
+"directory.scanning" = "Scanning";
+"directory.found_files" = "Found %d audio files";
+"directory.found_count" = "Found %d audio files";
+"directory.ready_next" = "Ready to proceed to metadata processing";
+"directory.info.recursive" = "Supports recursive subdirectory scanning";
+"directory.info.formats" = "Auto-detects %@ format files";
+"directory.info.read_tags" = "Reads existing audio tag information";
+
+/* Sidebar */
+"sidebar.title" = "Track Directory Manager";
+"sidebar.empty_title" = "No Items Selected";
+"sidebar.empty_hint" = "Please select files or a directory on the right";
+"sidebar.recent_title" = "Recent Directories";
+"sidebar.my_account" = "My Account";
+"sidebar.remaining_points" = "%d pts remaining";
+"sidebar.points_tooltip" = "Points are consumed for AI metadata tagging";
+"sidebar.dropped_file_badge" = "Dropped";
+"sidebar.no_history" = "No history yet";
+
+/* Auth */
+"auth.title.login" = "Sign In";
+"auth.title.register" = "Create Account";
+"auth.title.forgot_password" = "Reset Password";
+"auth.email" = "Email";
+"auth.password" = "Password";
+"auth.confirm_password" = "Confirm Password";
+"auth.username.optional" = "Username (Optional)";
+"auth.login.button" = "Sign In";
+"auth.register.button" = "Sign Up";
+"auth.sign_in_with_google" = "Sign in with Google";
+"auth.sign_in_with_apple" = "Sign in with Apple";
+"auth.forgot_password" = "Forgot password?";
+"auth.register_new" = "Create new account";
+"auth.have_account" = "Have an account? Sign in";
+"auth.back_to_login" = "Back to Sign In";
+"auth.send_reset_link" = "Send Reset Link";
+"auth.loading.google" = "Connecting to Google...";
+"auth.loading.profile" = "Loading profile...";
+"auth.logout" = "Sign Out";
+"auth.delete_account" = "Delete Account";
+"auth.delete_account_confirm" = "Confirm Account Deletion";
+"auth.delete_account_warning" = "This action cannot be undone. Your account and all associated data will be permanently deleted.";
+"auth.delete_account.button" = "Delete";
+"auth.cancel" = "Cancel";
+"auth.retry" = "Retry";
+"auth.policy.agree" = "I have read and agree to";
+"auth.policy.terms" = "Terms of Service";
+"auth.policy.privacy" = "Privacy Policy";
+"auth.password.min_length" = "Password must be at least %d characters";
+"auth.error.password_mismatch" = "Passwords do not match";
+"auth.error.policy_required" = "Please review and agree to our policies";
+"auth.reset_hint" = "Enter your email address and we will send you a link to reset your password.";
+"auth.reset_success" = "Reset link sent, please check your email.";
+"auth.verification.banner" = "Email not verified";
+"auth.verification.resend" = "Resend verification email";
+"auth.verification.sent" = "Verification email sent, please check your inbox";
+"auth.verification.verified_tooltip" = "Email verified";
+
+/* Columns */
+"column.filename" = "Filename";
+"column.title" = "Title";
+"column.artist" = "Artist";
+"column.album" = "Album";
+"column.genre" = "Genre";
+"column.year" = "Year";
+"column.status" = "Status";
+"column.duration" = "Time";
+"column.filesize" = "Size";
+"column.bitrate" = "Bitrate";
+"column.samplerate" = "Sample Rate";
+"column.format" = "Format";
+"column.created" = "Created";
+"column.modified" = "Modified";
+
+/* Processing States */
+"state.pending" = "Pending";
+"state.processing" = "Processing";
+"state.awaiting_confirmation" = "Confirm";
+"state.completed" = "Done";
+"state.failed" = "Failed";
+"state.user_modified" = "Edited";
+/* Playback */
+"playback.queue.title" = "Current Queue";
+"playback.queue.count" = "%d tracks";
+"playback.queue.empty" = "Queue is empty, double-click a file to start playing.";
+"playback.queue.close" = "Close Queue";
+"playback.queue.play_here" = "Play from here";
+"playback.queue.remove" = "Remove from queue";
+"playback.tooltip.previous" = "Previous Track";
+"playback.tooltip.play" = "Play";
+"playback.tooltip.pause" = "Pause";
+"playback.tooltip.next" = "Next Track";
+"playback.tooltip.shuffle_on" = "Switch to Shuffle";
+"playback.tooltip.shuffle_off" = "Switch to Sequential";
+"playback.tooltip.show_queue" = "Show Queue";
+"playback.tooltip.repeat_off" = "Repeat: Off (click for repeat all)";
+"playback.tooltip.repeat_all" = "Repeat: All (click for repeat one)";
+"playback.tooltip.repeat_one" = "Repeat: One (click to turn off)";
+"playback.tooltip.volume" = "Volume";
+"playback.track.none" = "Not Playing";
+"playback.status.playing" = "PLAYING";
+"playback.status.selected" = "SELECTED";
+"playback.track.select" = "Select Audio File";
+
+/* Search */
+"search.placeholder" = "Filter tracks...";
+
+/* Column Configuration */
+"header.menu.auto_size" = "Auto-size Column";
+"header.menu.auto_size_all" = "Auto-size All Columns";
+"header.menu.manage_columns" = "Manage Columns...";
+"header.menu.restore_defaults" = "Restore Defaults";
+"config.title" = "Column Configuration";
+"config.mandatory_column" = "This column is mandatory and cannot be hidden";
+"config.hide_column_hint" = "Click to hide column";
+"config.show_column_hint" = "Click to show column";
+"config.drag_reorder_hint" = "Drag to reorder";
+"config.restore_defaults" = "Restore Defaults";
+"config.restore_help" = "Reset columns to default configuration";
+"config.apply" = "Apply";
+"config.save_help" = "Save and apply column changes";
+
+/* Software Update */
+"update.check_for_updates" = "Check for Updates...";
+"update.checking" = "Checking for updates...";
+"update.up_to_date" = "You're up to date";
+"update.current_version" = "Current version: %@";
+"update.available_title" = "Update Available";
+"update.available_message" = "ReTagger %@ is now available. Your current version is %@.";
+"update.go_to_app_store" = "Update in App Store";
+"update.remind_later" = "Remind Me Later";
+"update.release_notes" = "Release Notes";
+"update.error" = "Update check failed";
+"update.retry" = "Retry";
+
+"error.playback.unsupported_dsd" = "Playback of DSD (DSF/DFF) files is currently not supported. This is a master-grade SACD/DSD format which cannot be decoded by the built-in player, but you can still edit and save its metadata tags.";
+"action.clear_all_history" = "Clear All History";
+
+/* Conflict Resolution */
+"conflict.title" = "Found %d name conflicts";
+"conflict.title.window" = "Resolve Name Conflicts";
+"conflict.guide.text" = "Only one file can be kept for each name. You can click the delete icon to remove unwanted files or click the edit icon to rename the file. Conflicts will write automatically once resolved.";
+"conflict.subtitle" = "The following tracks will have the same name after corrections. Please resolve each group.";
+"conflict.group_type.title_artist" = "Same artist & title";
+"conflict.group_type.filename" = "Same filename";
+"conflict.previous_group" = "Previous";
+"conflict.next_group" = "Next";
+"conflict.close" = "Close";
+"conflict.close.help" = "Close conflict resolution panel";
+"conflict.new_filename" = "New filename";
+"conflict.error.empty_filename" = "Filename cannot be empty";
+"conflict.error.illegal_chars" = "Filename cannot contain / : \\ characters";
+"conflict.error.conflict_in_group" = "This name conflicts with another file";
+"conflict.error.name_conflict_edit" = "Name conflict! Please edit the filename and retry";
+"conflict.filename.confirm" = "Confirm new filename";
+"conflict.filename.cancel" = "Cancel editing";
+"conflict.filename.double_click" = "Double-click to edit filename";
+"conflict.section.tags" = "Tag Info";
+"conflict.section.technical" = "Technical Metadata";
+"conflict.section.preview" = "Preview";
+"conflict.section.actions" = "Actions";
+"conflict.row.filename" = "Filename";
+"conflict.row.suggested_name" = "AI Suggested";
+"conflict.action.write_keep" = "Write & Keep";
+"conflict.action.write_keep.help" = "Write AI corrections to this file and keep it";
+"conflict.action.delete" = "Delete";
+"conflict.action.delete.help" = "Move this file to Trash";
+"conflict.confirm_delete.title" = "Confirm Deletion";
+"conflict.confirm_delete.message" = "Are you sure you want to move \"%@\" to Trash? This can be undone from the Trash.";
+"conflict.status.written" = "Written";
+"conflict.label.existing" = "Existing";
+"conflict.preview.play" = "Preview this file";
+"conflict.preview.pause" = "Pause preview";
+"conflict.preview.seek" = "Drag to seek";
+
+/* Settings Tab Labels */
+"settings.tab.general" = "General";
+"settings.tab.processing" = "Processing";
+"settings.tab.backup" = "Security & Backup";
+"settings.tab.update" = "Updates";
+"settings.tab.logs" = "Diagnostics";
+"settings.tab.flame" = "Flame Effect";
+
+/* Settings General Tab */
+"settings.general.language" = "Interface Language:";
+"settings.general.restore_directory" = "Restore last directory on launch";
+
+/* Settings Processing Tab */
+"settings.processing.include_subdirectories" = "Include subdirectories when scanning";
+"settings.processing.rename_format" = "File renaming format:";
+"settings.processing.rename_warning" = "Warning: Using only the title increases the risk of file name conflicts and overwriting. Please use with caution.";
+"settings.processing.format.title_artist" = "Title - Artist (Default)";
+"settings.processing.format.artist_title" = "Artist - Title";
+"settings.processing.format.title_only" = "Title Only";
+
+/* Settings Backup Tab */
+"settings.backup.auto_backup" = "Auto-backup files before modification";
+"settings.backup.location_label" = "Backup Location:";
+
+/* Settings Logs Tab */
+"settings.logs.title" = "Activity Logs";
+"settings.logs.clear_button" = "Clear Logs";
+"logs.level.info" = "Info";
+"logs.level.warning" = "Warning";
+"logs.level.error" = "Error";
+
+/* Settings Update Tab */
+"settings.update.auto_check" = "Auto-check for updates";
+"settings.update.check_frequency" = "Check frequency:";
+"settings.update.auto_prompt" = "Auto-prompt when new version is found";
+"settings.update.current_version_label" = "Current Version:";
+"settings.update.last_check_label" = "Last Checked:";
+"settings.update.never_checked" = "Never checked";
+"settings.update.check_now" = "Check for Updates Now";
+"settings.update.interval.daily" = "Daily";
+"settings.update.interval.weekly" = "Weekly";
+"settings.update.interval.monthly" = "Monthly";
+
+/* Settings Flame Tab */
+"settings.flame.preview_title" = "Live Preview";
+"settings.flame.color_mode" = "Enable \"Pure Flame\" color mode";
+"settings.flame.color_mode.help" = "Replace the classic green-yellow-red spectrum with a temperature-gradient flame color spectrum";
+"settings.flame.continuous" = "Enable continuous gradient rendering";
+"settings.flame.continuous.help" = "Turn off LED grids and render a smooth fluid gradient wave";
+"settings.flame.dual_channel" = "Enable independent dual-channel display";
+"settings.flame.dual_channel.help" = "Analyze and display left and right audio channels independently side by side";
+
+/* Menu Commands */
+"menu.about" = "About ReTagger";
+
+/* Settings Merged Tabs & Groups */
+"settings.tab.general_update" = "General & Updates";
+"settings.tab.processing_backup" = "Scanning & Backup";
+"settings.tab.visuals" = "Visual Effects";
+"settings.group.general" = "Basic Preferences";
+"settings.group.update" = "Software Update";
+"settings.group.scan" = "Directory Scanning";
+"settings.group.rename" = "Naming Format";
+"settings.group.backup" = "Security & Backup";
+
+/* AI Error Localizations */
+"error.ai.rate_limit.authenticated" = "AI tagging failed (Rate limit 429). Account quota exhausted. Please top up or try again tomorrow.";
+"error.ai.rate_limit.guest" = "AI tagging failed (Rate limit 429). Daily free quota exhausted. Please sign in or try again later.";
+"error.ai.client_error" = "AI tagging failed (Request error %d).\nDetails: %@";
+"error.ai.server_error" = "AI tagging failed (Server error %d).\nDetails: %@";
+"error.ai.unknown_code" = "AI tagging failed (Unknown status code %d).\nDetails: %@";
+"error.ai.processing_failed" = "AI tagging failed.\nDetails: %@";
+"error.ai.generic_exception" = "AI tagging exception occurred.\nError: %@";
+
+/* Added by Antigravity for Internationalization */
+"conflict.guide.part1" = "Guide: Only one file can be kept for each name. You can click ";
+"conflict.guide.part2" = " to delete unwanted files or modify the filename in the box and click the adjacent ";
+"conflict.guide.part3" = " to confirm writing.";
+"conflict.resolved_all" = "All conflicts resolved";
+"conflict.badge.title" = "Title";
+"conflict.badge.artist" = "Artist";
+"conflict.badge.album" = "Album";
+"conflict.badge.year" = "Year";
+"conflict.badge.none" = "None";
+
+"review.progress.writing_ai" = "Applying AI corrections... %d%%";
+"review.empty.select_directory" = "Please select a directory on the left";
+"review.empty.no_audio_files" = "No supported audio files found in this directory";
+"review.empty.tip" = "💡 Tip: For the best experience and to reduce permission prompts, we recommend dragging the entire album folder rather than scattered single tracks.";
+"review.restore.workspace" = "Restoring last workspace...";
+"review.restore.skip" = "Skip Restore";
+"review.trash.confirm_title" = "Confirm Move to Trash";
+"review.trash.confirm_single" = "Are you sure you want to move \"%@\" to the Trash?";
+"review.trash.confirm_multiple" = "Are you sure you want to move the selected %d files to the Trash? This action can be undone in the Trash.";
+"common.continue" = "Continue";
+"common.move_to_trash" = "Move to Trash";
+
+"review.bulk.ai_process.title" = "Confirm Bulk AI Tagging";
+"review.bulk.confirm_write.title" = "Confirm Bulk Write";
+"review.bulk.ai_process.message" = "You are about to run AI tagging on %d tracks. Do you want to continue?";
+"review.bulk.confirm_write.message" = "You are about to write AI corrections to %d tracks. Do you want to continue?";
+
+/* === Common Buttons === */
+"common.ok" = "OK";
+"common.retry" = "Retry";
+"common.skip" = "Skip";
+
+/* === Account Status === */
+"account.status.authenticated" = "Current account";
+"account.status.guest" = "Guest mode";
+
+/* === Auth Additions === */
+"auth.apple_credential_missing" = "Unable to get Apple ID credential";
+"auth.authorization_code_missing" = "Unable to get authorization code";
+"auth.resending" = "Sending...";
+"auth.google_login_title" = "Google Sign-In";
+
+/* === Redeem Code === */
+"redeem.title" = "Redeem Code";
+"redeem.code_placeholder" = "Enter redemption code";
+"redeem.activate" = "Activate";
+"redeem.success_with_value" = "Redeemed! Received %d credits. Current balance: %d";
+"redeem.success" = "Redeemed! Current balance: %d";
+
+/* === User Profile === */
+"profile.remaining_credits" = "Remaining Credits";
+"profile.load_failed" = "Failed to load profile: %@";
+
+/* === Store === */
+"store.buy_credits" = "Buy Credits";
+"store.current_balance" = "Current balance: ";
+"store.credits_unit" = "credits";
+"store.loading_products" = "Loading products...";
+"store.no_products" = "No products available";
+"store.sync_pending_orders" = "Sync pending orders";
+"store.sync_pending_orders_hint" = "A paid order has not been credited yet. Click to sync again.";
+"store.recommended" = "Best Value";
+
+/* === AI Error Additions === */
+"error.ai.invalid_request_payload" = "The request data is malformed or the configuration is invalid. Please check and try again.";
+"error.ai.service_overloaded" = "The AI service is currently overloaded or temporarily unavailable. Please try again later.";
+
+/* === Sidebar/Table Additions === */
+"sidebar.remove_from_history" = "Remove from history";
+"table.edit_tooltip" = "Edit";
+"review.detail_resize_hint" = "Drag to resize the detail panel; double-click to reset";
+
+/* === Error Alerts (ErrorPresenter) === */
+"error_alert.filesystem.message" = "A file system error occurred: %@";
+"error_alert.permission.title" = "Access Required";
+"error_alert.permission.message" = "ReTagger needs access to \"%@\" to continue.\n\nPlease grant file access, or choose another directory.";
+"error_alert.metadata_read.message" = "Unable to read audio metadata from \"%@\".\n\nPossible causes:\n• The file is corrupted or malformed\n• The file contains no recognizable tags\n• The file encoding is unsupported\n\nSuggestion: skip this file or repair it with another tool.";
+"error_alert.metadata_write.title" = "Unable to Write Metadata";
+"error_alert.metadata_write.message" = "Unable to write metadata to \"%@\".\n\nPossible causes:\n• The file is in use by another app\n• Missing write permission\n• Not enough disk space\n\nSuggestion: close other music players and try again.";
+"error_alert.unsupported_format.message" = "AVFoundation cannot write audio tags for \"%@\" directly.\n\nThe file may use a variant encoding or special structure that requires a more complete tagging library such as TagLib.\n\nSuggestion: skip this file for now, or retry after the writing module is updated.";
+"error_alert.network.title" = "Network Error";
+"error_alert.network.message" = "The network request failed: %@\n\nPlease check:\n• Your network connection\n• Whether the backend server is reachable\n• Whether a firewall is blocking the connection";
+"error_alert.api.title" = "API Error (%d)";
+"error_alert.invalid_response.title" = "Invalid Response";
+"error_alert.invalid_response.message" = "The server returned malformed data.\n\nPossible causes:\n• API version mismatch\n• Server misconfiguration\n• Data corrupted in transit\n\nSuggestion: make sure the app is up to date.";
+"error_alert.ai_failed.title" = "AI Tagging Failed";
+"error_alert.ai_failed.message" = "An error occurred while the AI was processing metadata: %@\n\nPossible causes:\n• The AI service is temporarily unavailable\n• The input data is malformed\n• The API quota is exhausted\n\nSuggestion: try again later or switch to another AI engine.";
+"error_alert.backup_failed.title" = "Backup Failed";
+"error_alert.backup_failed.message" = "Unable to create a backup of \"%@\".\n\nPlease check the backup directory permissions or disk space.\n\nContinue modifying the file without a backup? (Not recommended)";
+"error_alert.backup_failed.cancel" = "Cancel";
+"error_alert.backup_failed.continue" = "Continue Without Backup";
+"error_alert.invalid_settings.title" = "Invalid Settings";
+"error_alert.invalid_settings.message" = "There is a problem with the app settings: %@\n\nPlease review and correct the settings to continue.";
+"error_alert.invalid_settings.open_settings" = "Open Settings";
+"error_alert.cancelled.title" = "Operation Cancelled";
