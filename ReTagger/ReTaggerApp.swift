@@ -92,8 +92,7 @@ struct ReTaggerApp: App {
                                     .foregroundColor: NSColor.labelColor
                                 ]
                             ),
-                            NSApplication.AboutPanelOptionKey.applicationName: "ReTagger",
-                            NSApplication.AboutPanelOptionKey.version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+                            NSApplication.AboutPanelOptionKey.applicationName: "ReTagger"
                         ]
                     )
                 }) {
