@@ -186,13 +186,13 @@ final class PlaybackController: ObservableObject {
         showHUD(message: "+\(Int(seconds))s", icon: "goforward.\(Int(seconds))")
     }
 
-    func showHUD(message: String, icon: String) {
+    func showHUD(message: String, icon: String, duration: TimeInterval = 0.8) {
         hudMessage = message
         hudIcon = icon
-        
+
         hudTask?.cancel()
         hudTask = Task {
-            try? await Task.sleep(nanoseconds: 800_000_000) // 800ms
+            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
             guard !Task.isCancelled else { return }
             self.hudMessage = nil
         }

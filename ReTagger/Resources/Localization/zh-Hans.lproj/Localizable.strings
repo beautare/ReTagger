@@ -352,6 +352,10 @@
 "playback.tooltip.play" = "播放";
 "playback.tooltip.pause" = "暂停";
 "playback.tooltip.next" = "下一首";
+"playback.mode.sequential" = "顺序播放";
+"playback.mode.repeat_all" = "列表循环";
+"playback.mode.repeat_one" = "单曲循环";
+"playback.mode.shuffle" = "随机播放";
 "playback.tooltip.mode_sequential" = "顺序播放（点击切换列表循环）";
 "playback.tooltip.mode_repeat_all" = "列表循环（点击切换单曲循环）";
 "playback.tooltip.mode_repeat_one" = "单曲循环（点击切换随机播放）";

@@ -350,7 +350,7 @@ struct PlaybackBarView: View {
             Divider()
                 .frame(height: 28)
 
-            Button(action: playbackController.cyclePlaybackMode) {
+            Button(action: cyclePlaybackModeWithFeedback) {
                 // 单按钮轮换四态播放模式：顺序（暗色 repeat）→ 列表循环 → 单曲循环 → 随机
                 playbackModeIconView
                     .foregroundColor(playbackMode == .sequential ? freshControlIcon : .white)
@@ -493,12 +493,10 @@ struct PlaybackBarView: View {
             Image(systemName: "repeat")
                 .font(iconFont)
         case .repeatOne:
-            Image(systemName: "repeat")
-                .font(iconFont)
-                .overlay(
-                    Text("1")
-                        .font(.system(size: 9, weight: .heavy, design: .rounded))
-                )
+            RepeatOneGlyph(
+                ringFont: iconFont,
+                digitFont: .system(size: 9, weight: .heavy, design: .rounded)
+            )
         case .shuffle:
             Image(systemName: "shuffle")
                 .font(iconFont)
@@ -512,6 +510,32 @@ struct PlaybackBarView: View {
         case .repeatOne: return "playback.tooltip.mode_repeat_one"
         case .shuffle: return "playback.tooltip.mode_shuffle"
         }
+    }
+
+    /// 切换播放模式并复用中央 HUD 即时提示新状态，点击与 ⌥M 快捷键共用此入口
+    private func cyclePlaybackModeWithFeedback() {
+        playbackController.cyclePlaybackMode()
+        let mode = playbackController.playbackMode
+
+        let nameKey: String
+        let hudIcon: String
+        switch mode {
+        case .sequential:
+            nameKey = "playback.mode.sequential"
+            // HUD 有文字兜底语义，顺序模式用“播放到底”的箭头图标，避免与循环环混淆
+            hudIcon = "arrow.forward.to.line"
+        case .repeatAll:
+            nameKey = "playback.mode.repeat_all"
+            hudIcon = "repeat"
+        case .repeatOne:
+            nameKey = "playback.mode.repeat_one"
+            hudIcon = "repeat.1"
+        case .shuffle:
+            nameKey = "playback.mode.shuffle"
+            hudIcon = "shuffle"
+        }
+        // 模式名称需要阅读时间，停留比快进/快退的 ±5s 提示更长
+        playbackController.showHUD(message: localizationManager.string(nameKey), icon: hudIcon, duration: 1.2)
     }
 
     private var volumeIconName: String {
@@ -736,6 +760,41 @@ struct PlaybackBarView: View {
             keyMonitor = nil
         }
         #endif
+    }
+}
+
+// MARK: - 单曲循环组合图标
+
+/// repeat 环叠加严格居中的“1”：系统 repeat.1 的数字位置刻在字形里、
+/// 偏离视觉中心，组合渲染保证“1”落在几何中心，供模式按钮与 HUD 共用
+struct RepeatOneGlyph: View {
+    let ringFont: Font
+    let digitFont: Font
+
+    var body: some View {
+        Image(systemName: "repeat")
+            .font(ringFont)
+            .overlay(
+                Text("1")
+                    .font(digitFont)
+            )
+    }
+}
+
+/// 播放 HUD 图标：单曲循环走组合图形，其余走系统符号
+struct PlaybackHUDIconView: View {
+    let icon: String
+
+    var body: some View {
+        if icon == "repeat.1" {
+            RepeatOneGlyph(
+                ringFont: .system(size: 44, weight: .semibold),
+                digitFont: .system(size: 22, weight: .heavy, design: .rounded)
+            )
+        } else {
+            Image(systemName: icon)
+                .font(.system(size: 44, weight: .semibold))
+        }
     }
 }
 

@@ -73,8 +73,7 @@ struct ContentView: View {
             Group {
                 if let hudMessage = playbackController.hudMessage {
                     VStack(spacing: DesignSystem.Spacing.sm) {
-                        Image(systemName: playbackController.hudIcon)
-                            .font(.system(size: 44, weight: .semibold))
+                        PlaybackHUDIconView(icon: playbackController.hudIcon)
                             .foregroundColor(.white)
                         
                         Text(hudMessage)

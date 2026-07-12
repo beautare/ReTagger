@@ -314,6 +314,10 @@
 "playback.tooltip.play" = "Play";
 "playback.tooltip.pause" = "Pause";
 "playback.tooltip.next" = "Next Track";
+"playback.mode.sequential" = "Sequential";
+"playback.mode.repeat_all" = "Repeat All";
+"playback.mode.repeat_one" = "Repeat One";
+"playback.mode.shuffle" = "Shuffle";
 "playback.tooltip.mode_sequential" = "Sequential (click for repeat all)";
 "playback.tooltip.mode_repeat_all" = "Repeat All (click for repeat one)";
 "playback.tooltip.mode_repeat_one" = "Repeat One (click for shuffle)";
