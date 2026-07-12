@@ -5,8 +5,9 @@
   直发渠道（GitHub Release DMG）签名所用 entitlements。
   与 App Store 渠道保持一致的沙盒能力（网络、用户选择文件、书签），
   额外加入 Sparkle 沙盒安装所需的 mach-lookup 例外（-spks / -spki）。
-  注意：com.apple.developer.applesignin 为受限权限，Developer ID 分发
-  需要配套描述文件才能签入，直发渠道当前不包含该能力。
+  不含 com.apple.developer.applesignin：Apple 明确不支持 Developer ID
+  分发使用 Sign in with Apple（官方对 FB7645479 的回复为"行为符合预期"），
+  Developer ID 描述文件永远不会包含该授权；直发版登录走邮箱 / Google。
 -->
 <dict>
 	<key>com.apple.security.app-sandbox</key>

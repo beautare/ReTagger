@@ -74,6 +74,9 @@ struct LoginView: View {
             .disabled(isGoogleLoading || isLoggingIn)
             
             // Apple Login
+            // 直发渠道（SPARKLE_ENABLED）不提供：Apple 明确不支持 Developer ID
+            // 分发使用 Sign in with Apple 受限权限，直发版走邮箱 / Google 登录
+            #if !SPARKLE_ENABLED
             SignInWithAppleButton(
                 onRequest: { request in
                     request.requestedScopes = [.fullName, .email]
@@ -84,6 +87,7 @@ struct LoginView: View {
             )
             .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
             .frame(height: 32) // Match standard button height ~32-40
+            #endif
             
             if let oauthErrorMessage {
                 AuthErrorBanner(message: oauthErrorMessage)
@@ -152,6 +156,7 @@ struct LoginView: View {
         }
     }
     
+    #if !SPARKLE_ENABLED
     private func handleAppleLogin(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let authResults):
@@ -198,7 +203,8 @@ struct LoginView: View {
             oauthErrorMessage = error.localizedDescription
         }
     }
-    
+    #endif
+
     private func completeGoogleLogin(code: String) {
         Task {
             await MainActor.run {
