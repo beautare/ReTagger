@@ -42,6 +42,14 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "build_number=${BUILD_NUMBER}" >> "$GITHUB_OUTPUT"
 
+      # runner 默认 Xcode 16.4（macOS 15.5 SDK）编不过本项目：AVAssetExportSession.export(to:as:)
+      # 在旧 SDK 中要求 macOS 15+，新 SDK（Xcode 26.x）已向下部署到低版本；本地开发一直使用 26.x。
+      - name: 选择镜像内最新 Xcode
+        run: |
+          XCODE_APP=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "${XCODE_APP}/Contents/Developer"
+          xcodebuild -version
+
       - name: 导入 Developer ID 证书
         env:
           CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
