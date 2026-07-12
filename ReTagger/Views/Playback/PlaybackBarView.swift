@@ -352,9 +352,8 @@ struct PlaybackBarView: View {
 
             Button(action: playbackController.cyclePlaybackMode) {
                 // 单按钮轮换四态播放模式：顺序（暗色 repeat）→ 列表循环 → 单曲循环 → 随机
-                Image(systemName: playbackModeIcon)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(playbackMode == .sequential ? freshControlIcon : DesignSystem.Colors.accent)
+                playbackModeIconView
+                    .foregroundColor(playbackMode == .sequential ? freshControlIcon : .white)
                     .frame(
                         width: DesignSystem.Layout.PlaybackBar.actionButtonSize,
                         height: DesignSystem.Layout.PlaybackBar.actionButtonSize
@@ -374,7 +373,7 @@ struct PlaybackBarView: View {
             Button(action: { isVolumePopoverPresented.toggle() }) {
                 Image(systemName: volumeIconName)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(freshControlIcon)
+                    .foregroundColor(isVolumePopoverPresented ? .white : freshControlIcon)
                     .frame(
                         width: DesignSystem.Layout.PlaybackBar.actionButtonSize,
                         height: DesignSystem.Layout.PlaybackBar.actionButtonSize
@@ -394,7 +393,7 @@ struct PlaybackBarView: View {
             Button(action: toggleQueuePanel) {
                 Image(systemName: "list.number")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(isQueueVisible ? DesignSystem.Colors.accent : freshControlIcon)
+                    .foregroundColor(isQueueVisible ? .white : freshControlIcon)
                     .frame(
                         width: DesignSystem.Layout.PlaybackBar.actionButtonSize,
                         height: DesignSystem.Layout.PlaybackBar.actionButtonSize
@@ -482,11 +481,27 @@ struct PlaybackBarView: View {
         PlaybackMode(order: state.order, repeatMode: state.repeatMode)
     }
 
-    private var playbackModeIcon: String {
+    /// 单曲循环不用系统 repeat.1 图标——其数字“1”的位置刻在字形里、偏离按钮中心，
+    /// 改为 repeat 环叠加一个严格居中的“1”。
+    /// 环用 18pt medium 放大内部空间，数字用 heavy 重字重，
+    /// “细环 + 重数字”的反差保证小按钮内“1”依然醒目
+    @ViewBuilder
+    private var playbackModeIconView: some View {
+        let iconFont = Font.system(size: 18, weight: .medium)
         switch playbackMode {
-        case .sequential, .repeatAll: return "repeat"
-        case .repeatOne: return "repeat.1"
-        case .shuffle: return "shuffle"
+        case .sequential, .repeatAll:
+            Image(systemName: "repeat")
+                .font(iconFont)
+        case .repeatOne:
+            Image(systemName: "repeat")
+                .font(iconFont)
+                .overlay(
+                    Text("1")
+                        .font(.system(size: 9, weight: .heavy, design: .rounded))
+                )
+        case .shuffle:
+            Image(systemName: "shuffle")
+                .font(iconFont)
         }
     }
 
@@ -630,11 +645,24 @@ struct PlaybackBarView: View {
         Color.white.opacity(0.9)
     }
 
+    /// 功能按钮底色：空闲为收敛的蓝调淡渐变（带色相才能从毛玻璃背景中浮起，
+    /// 维持可点击暗示），激活为与主播放键同源的实心主题渐变，
+    /// 让白色图示获得最大对比度，空闲/激活层级一眼可辨
     private func controlBadgeGradient(isActive: Bool) -> LinearGradient {
-        LinearGradient(
+        if isActive {
+            return LinearGradient(
+                colors: [
+                    Color(red: 0.31, green: 0.52, blue: 1.0),
+                    Color(red: 0.46, green: 0.82, blue: 1.0)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        return LinearGradient(
             colors: [
-                Color(red: 0.24, green: 0.33, blue: 0.92).opacity(isActive ? 0.42 : 0.28),
-                Color(red: 0.38, green: 0.79, blue: 0.96).opacity(isActive ? 0.38 : 0.22)
+                Color(red: 0.24, green: 0.33, blue: 0.92).opacity(0.24),
+                Color(red: 0.38, green: 0.79, blue: 0.96).opacity(0.18)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
