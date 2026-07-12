@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+  <channel>
+    <title>ReTagger Updates (x86_64)</title>
+    <link>https://beautare.github.io/ReTagger/appcast-x86_64.xml</link>
+    <description>ReTagger for macOS release feed (x86_64)</description>
+    <language>zh</language>
+    <!-- ITEMS -->
+    <item>
+      <title>Version 1.11.2</title>
+      <pubDate>Sun, 12 Jul 2026 13:10:12 +0000</pubDate>
+      <sparkle:version>2607121659</sparkle:version>
+      <sparkle:shortVersionString>1.11.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>12.4</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p><a href="https://github.com/beautare/ReTagger/releases/tag/v1.11.2">在 GitHub 查看更新说明 / View release notes on GitHub</a></p>]]></description>
+      <enclosure url="https://github.com/beautare/ReTagger/releases/download/v1.11.2/ReTagger-v1.11.2-x86_64.dmg" sparkle:edSignature="0GJD9WJ4tiDo0oZZyaw3I5zfkm23To4FSqpxv7Wj0Crje5Hg3YHljfEtk01S3uVWl9F4F7O8HcydE7r5UkuXCw==" length="7600189" type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>
