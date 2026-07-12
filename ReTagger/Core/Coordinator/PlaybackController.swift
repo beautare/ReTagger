@@ -109,10 +109,11 @@ final class PlaybackController: ObservableObject {
         let savedVolume = UserDefaults.standard.object(forKey: Self.volumeDefaultsKey) as? Float ?? 1.0
         setVolume(savedVolume)
 
-        if let rawMode = UserDefaults.standard.string(forKey: Self.repeatModeDefaultsKey),
-           let mode = PlaybackRepeatMode(rawValue: rawMode) {
-            service.setRepeatMode(mode)
-        }
+        let savedRepeatMode = UserDefaults.standard.string(forKey: Self.repeatModeDefaultsKey)
+            .flatMap(PlaybackRepeatMode.init(rawValue:)) ?? .off
+        // 归并到四态播放模式，将历史遗留的“随机 × 循环”组合收敛为规范组合
+        let mode = PlaybackMode(order: service.state.order, repeatMode: savedRepeatMode)
+        setRepeatMode(mode.repeatMode)
     }
 
     func setVolume(_ newVolume: Float) {
@@ -122,11 +123,22 @@ final class PlaybackController: ObservableObject {
         UserDefaults.standard.set(clamped, forKey: Self.volumeDefaultsKey)
     }
 
-    /// 循环模式按 off → all → one → off 顺序切换
-    func cycleRepeatMode() {
-        let nextMode = state.repeatMode.next
-        service.setRepeatMode(nextMode)
-        UserDefaults.standard.set(nextMode.rawValue, forKey: Self.repeatModeDefaultsKey)
+    /// 当前播放模式。以服务端状态为唯一判定来源：本地 state 镜像经异步发布更新，
+    /// 在同步调用链中可能滞后一拍
+    var playbackMode: PlaybackMode {
+        PlaybackMode(order: service.state.order, repeatMode: service.state.repeatMode)
+    }
+
+    /// 播放模式按 顺序 → 列表循环 → 单曲循环 → 随机 轮换
+    func cyclePlaybackMode() {
+        let next = playbackMode.next
+        setOrder(next.order)
+        setRepeatMode(next.repeatMode)
+    }
+
+    private func setRepeatMode(_ mode: PlaybackRepeatMode) {
+        service.setRepeatMode(mode)
+        UserDefaults.standard.set(mode.rawValue, forKey: Self.repeatModeDefaultsKey)
     }
 
     func startPlayback(queue: [AudioMetadata], from track: AudioMetadata) {
@@ -184,13 +196,6 @@ final class PlaybackController: ObservableObject {
             guard !Task.isCancelled else { return }
             self.hudMessage = nil
         }
-    }
-
-    func toggleOrder() {
-        // 以服务端状态为唯一判定来源：本地 state 镜像经异步发布更新，
-        // 在同步调用链（如设置回写触发的 setOrder）中可能滞后一拍
-        let target: PlaybackOrder = service.state.order == .sequential ? .shuffle : .sequential
-        setOrder(target)
     }
 
     func setOrder(_ order: PlaybackOrder, notify: Bool = true) {

@@ -352,12 +352,11 @@
 "playback.tooltip.play" = "播放";
 "playback.tooltip.pause" = "暂停";
 "playback.tooltip.next" = "下一首";
-"playback.tooltip.shuffle_on" = "切换为随机播放";
-"playback.tooltip.shuffle_off" = "切换为顺序播放";
+"playback.tooltip.mode_sequential" = "顺序播放（点击切换列表循环）";
+"playback.tooltip.mode_repeat_all" = "列表循环（点击切换单曲循环）";
+"playback.tooltip.mode_repeat_one" = "单曲循环（点击切换随机播放）";
+"playback.tooltip.mode_shuffle" = "随机播放（点击切换顺序播放）";
 "playback.tooltip.show_queue" = "显示播放队列";
-"playback.tooltip.repeat_off" = "循环：关闭（点击开启列表循环）";
-"playback.tooltip.repeat_all" = "循环：列表循环（点击切换单曲循环）";
-"playback.tooltip.repeat_one" = "循环：单曲循环（点击关闭）";
 "playback.tooltip.volume" = "音量";
 "playback.track.none" = "未播放";
 "playback.status.playing" = "播放中";

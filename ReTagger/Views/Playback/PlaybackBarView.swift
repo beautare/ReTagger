@@ -163,35 +163,22 @@ struct PlaybackBarView: View {
     }
 
     private var trackSummary: some View {
-        HStack(spacing: DesignSystem.Spacing.sm) {
-            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md)
-                .fill(trackArtworkGradient)
-                .frame(
-                    width: DesignSystem.Layout.PlaybackBar.artworkSize,
-                    height: DesignSystem.Layout.PlaybackBar.artworkSize
-                )
-                .overlay(
-                    Image(systemName: DesignSystem.Icons.music)
-                        .foregroundColor(.white.opacity(0.9))
-                )
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
+            MarqueeTextView(
+                text: primaryTitle,
+                font: .systemFont(ofSize: DesignSystem.Layout.PlaybackBar.trackTitleFontSize, weight: .semibold),
+                textColor: .labelColor,
+                width: DesignSystem.Layout.PlaybackBar.trackTitleTextWidth,
+                isPlaying: timeline.isPlaying
+            )
 
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xxs) {
-                MarqueeTextView(
-                    text: primaryTitle,
-                    font: .systemFont(ofSize: DesignSystem.Layout.PlaybackBar.trackTitleFontSize, weight: .semibold),
-                    textColor: .labelColor,
-                    width: DesignSystem.Layout.PlaybackBar.trackTitleTextWidth,
-                    isPlaying: timeline.isPlaying
-                )
-
-                MarqueeTextView(
-                    text: secondaryTitle,
-                    font: .systemFont(ofSize: DesignSystem.Layout.PlaybackBar.trackSubtitleFontSize, weight: .regular),
-                    textColor: .secondaryLabelColor,
-                    width: DesignSystem.Layout.PlaybackBar.trackTitleTextWidth,
-                    isPlaying: timeline.isPlaying
-                )
-            }
+            MarqueeTextView(
+                text: secondaryTitle,
+                font: .systemFont(ofSize: DesignSystem.Layout.PlaybackBar.trackSubtitleFontSize, weight: .regular),
+                textColor: .secondaryLabelColor,
+                width: DesignSystem.Layout.PlaybackBar.trackTitleTextWidth,
+                isPlaying: timeline.isPlaying
+            )
         }
         .frame(width: DesignSystem.Layout.PlaybackBar.trackSummaryWidth, alignment: isUltraCompactLayout ? .center : .leading)
         .help(state.currentTrack?.fileName ?? "")
@@ -363,44 +350,24 @@ struct PlaybackBarView: View {
             Divider()
                 .frame(height: 28)
 
-            Button(action: playbackController.toggleOrder) {
-                // 图标固定为 shuffle，用高亮色表示随机是否开启；repeat 图标留给循环按钮
-                Image(systemName: "shuffle")
+            Button(action: playbackController.cyclePlaybackMode) {
+                // 单按钮轮换四态播放模式：顺序（暗色 repeat）→ 列表循环 → 单曲循环 → 随机
+                Image(systemName: playbackModeIcon)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(state.order == .shuffle ? DesignSystem.Colors.accent : freshControlIcon)
+                    .foregroundColor(playbackMode == .sequential ? freshControlIcon : DesignSystem.Colors.accent)
                     .frame(
                         width: DesignSystem.Layout.PlaybackBar.actionButtonSize,
                         height: DesignSystem.Layout.PlaybackBar.actionButtonSize
                     )
                     .background(
                         RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm)
-                            .fill(controlBadgeGradient(isActive: state.order == .shuffle))
+                            .fill(controlBadgeGradient(isActive: playbackMode != .sequential))
                     )
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help(localizationManager.string(state.order == .shuffle ? "playback.tooltip.shuffle_off" : "playback.tooltip.shuffle_on"))
-            .keyboardShortcut("s", modifiers: [.option])
-            .disabled(!isActive)
-            .opacity(isActive ? 1 : 0.4)
-
-            Button(action: playbackController.cycleRepeatMode) {
-                Image(systemName: state.repeatMode == .one ? "repeat.1" : "repeat")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(state.repeatMode != .off ? DesignSystem.Colors.accent : freshControlIcon)
-                    .frame(
-                        width: DesignSystem.Layout.PlaybackBar.actionButtonSize,
-                        height: DesignSystem.Layout.PlaybackBar.actionButtonSize
-                    )
-                    .background(
-                        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm)
-                            .fill(controlBadgeGradient(isActive: state.repeatMode != .off))
-                    )
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .help(localizationManager.string(repeatTooltipKey))
-            .keyboardShortcut("r", modifiers: [.option])
+            .help(localizationManager.string(playbackModeTooltipKey))
+            .keyboardShortcut("m", modifiers: [.option])
             .disabled(!isActive)
             .opacity(isActive ? 1 : 0.4)
 
@@ -508,13 +475,27 @@ struct PlaybackBarView: View {
         playbackController.updateQueueVisibility(targetVisibility)
     }
 
-    // MARK: - 循环与音量
+    // MARK: - 播放模式与音量
 
-    private var repeatTooltipKey: String {
-        switch state.repeatMode {
-        case .off: return "playback.tooltip.repeat_off"
-        case .all: return "playback.tooltip.repeat_all"
-        case .one: return "playback.tooltip.repeat_one"
+    /// 展示层从 state 镜像派生模式，与视图刷新时机保持一致
+    private var playbackMode: PlaybackMode {
+        PlaybackMode(order: state.order, repeatMode: state.repeatMode)
+    }
+
+    private var playbackModeIcon: String {
+        switch playbackMode {
+        case .sequential, .repeatAll: return "repeat"
+        case .repeatOne: return "repeat.1"
+        case .shuffle: return "shuffle"
+        }
+    }
+
+    private var playbackModeTooltipKey: String {
+        switch playbackMode {
+        case .sequential: return "playback.tooltip.mode_sequential"
+        case .repeatAll: return "playback.tooltip.mode_repeat_all"
+        case .repeatOne: return "playback.tooltip.mode_repeat_one"
+        case .shuffle: return "playback.tooltip.mode_shuffle"
         }
     }
 
@@ -654,17 +635,6 @@ struct PlaybackBarView: View {
             colors: [
                 Color(red: 0.24, green: 0.33, blue: 0.92).opacity(isActive ? 0.42 : 0.28),
                 Color(red: 0.38, green: 0.79, blue: 0.96).opacity(isActive ? 0.38 : 0.22)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-
-    private var trackArtworkGradient: LinearGradient {
-        LinearGradient(
-            colors: [
-                Color(red: 0.29, green: 0.36, blue: 0.94),
-                Color(red: 0.52, green: 0.85, blue: 1.0)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing

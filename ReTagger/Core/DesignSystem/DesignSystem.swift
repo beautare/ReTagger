@@ -241,11 +241,11 @@ enum DesignSystem {
             static let trackSummaryMinWidth: CGFloat = 150
 
             /// 紧凑布局下的控制区最小宽度
-            /// - 说明：保证上一首/播放/下一首及功能按钮（随机/循环/音量/队列）排列不拥挤
-            static let controlSectionMinWidth: CGFloat = 260
+            /// - 说明：保证上一首/播放/下一首及功能按钮（播放模式/音量/队列）排列不拥挤
+            static let controlSectionMinWidth: CGFloat = 220
 
-            /// 曲目摘要区域总宽度（封面 + 标题两行）
-            static let trackSummaryWidth: CGFloat = 180
+            /// 曲目摘要区域总宽度（标题两行，与滚动文本同宽）
+            static let trackSummaryWidth: CGFloat = 132
 
             /// 曲目摘要滚动文本（标题/艺术家）可视宽度
             static let trackTitleTextWidth: CGFloat = 132
@@ -267,7 +267,7 @@ enum DesignSystem {
             /// 紧凑布局总高度
             /// - 取值范围：80-140（推荐 108）
             /// - 说明：需容纳进度条+控制区两行内容，确保各元素间距合理
-            /// - 约束：应 ≥ (artworkSize + compactPadding * 2 + 时间标签高度 + 间距)
+            /// - 约束：应 ≥ (controlButtonHeight + compactPadding * 2 + 时间标签高度 + 间距)
             static let compactHeight: CGFloat = 108
 
             /// 超紧凑布局总高度
@@ -305,12 +305,6 @@ enum DesignSystem {
             ///   宽度仅在时间位数变化时才改变，既避免播放期间的频谱抖动，又消除标签两侧多余留白
             static let timeLabelWidth: CGFloat = 28
 
-            /// 音乐图标尺寸
-            /// - 取值范围：28-48（推荐 36）
-            /// - 说明：方形图标边长，影响曲目摘要区域的视觉平衡
-            /// - 约束：应小于 controlButtonHeight，建议为 controlButtonHeight 的 0.8-0.9 倍
-            static let artworkSize: CGFloat = 36
-
             /// 主控制按钮尺寸（播放/暂停）
             /// - 取值范围：44-60（推荐 52）
             /// - 说明：圆形按钮直径，作为视觉焦点应最大
@@ -323,7 +317,7 @@ enum DesignSystem {
             /// - 约束：应 ≥ actionButtonSize，应 ≤ primaryButtonSize
             static let secondaryButtonSize: CGFloat = 44
 
-            /// 功能按钮尺寸（随机/队列）
+            /// 功能按钮尺寸（播放模式/音量/队列）
             /// - 取值范围：24-40（推荐 32）
             /// - 说明：方形按钮边长，作为辅助功能应最小
             /// - 约束：应 < secondaryButtonSize，建议为 secondaryButtonSize 的 0.7-0.8 倍

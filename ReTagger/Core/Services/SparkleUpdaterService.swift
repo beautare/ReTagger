@@ -30,9 +30,10 @@ final class SparkleUpdaterService: ObservableObject {
     private var cancellable: AnyCancellable?
 
     init() {
-        // startingUpdater: true 立即启动后台调度；在用户作出选择前
-        // automaticallyChecksForUpdates 尚未写入，Sparkle 不会自动检查，
-        // 授权交互统一由 UpdatePermissionPromptView 完成。
+        // startingUpdater: true 立即启动后台调度。打包脚本已在 Info.plist 预置
+        // SUEnableAutomaticChecks=NO：既保证用户选择前不自动检查，也抑制
+        // Sparkle 第二次启动时的内置询问弹窗——授权交互唯一入口是
+        // UpdatePermissionPromptView，用户选择写入 UserDefaults 后覆盖该默认值。
         controller = SPUStandardUpdaterController(
             startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil
         )

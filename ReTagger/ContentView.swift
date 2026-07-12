@@ -10,7 +10,11 @@ import AppKit
 
 struct ContentView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
+    #if SPARKLE_ENABLED
+    @EnvironmentObject private var sparkleUpdater: SparkleUpdaterService
+    #else
     @EnvironmentObject private var updateService: AppUpdateService
+    #endif
     @EnvironmentObject private var playbackController: PlaybackController
     @State private var rootNodes: [DirectoryTreeNode] = []
     @State private var selectedDirectory: URL?
@@ -137,7 +141,11 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
                 .environmentObject(coordinator)
+                #if SPARKLE_ENABLED
+                .environmentObject(sparkleUpdater)
+                #else
                 .environmentObject(updateService)
+                #endif
         }
         .onReceive(coordinator.$workspaceDirectories) { dirs in
              syncRootNodes(with: dirs)

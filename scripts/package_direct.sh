@@ -78,6 +78,10 @@ INFO_PLIST="${APP}/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :SUPublicEDKey string ${SPARKLE_PUBLIC_ED_KEY}" "${INFO_PLIST}"
 /usr/libexec/PlistBuddy -c "Add :SUEnableInstallerLauncherService bool true" "${INFO_PLIST}"
 /usr/libexec/PlistBuddy -c "Add :SUScheduledCheckInterval integer 86400" "${INFO_PLIST}"
+# 授权交互唯一入口是应用内授权气泡（UpdatePermissionPromptView）：
+# 预置 SUEnableAutomaticChecks=NO 抑制 Sparkle 第二次启动时的内置询问弹窗，
+# 用户在气泡或设置页的选择写入 UserDefaults 后覆盖此默认值
+/usr/libexec/PlistBuddy -c "Add :SUEnableAutomaticChecks bool false" "${INFO_PLIST}"
 
 # ── 签名：由内向外 ──
 SPARKLE_FW="${APP}/Contents/Frameworks/Sparkle.framework"

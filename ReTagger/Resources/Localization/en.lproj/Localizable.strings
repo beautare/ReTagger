@@ -314,12 +314,11 @@
 "playback.tooltip.play" = "Play";
 "playback.tooltip.pause" = "Pause";
 "playback.tooltip.next" = "Next Track";
-"playback.tooltip.shuffle_on" = "Switch to Shuffle";
-"playback.tooltip.shuffle_off" = "Switch to Sequential";
+"playback.tooltip.mode_sequential" = "Sequential (click for repeat all)";
+"playback.tooltip.mode_repeat_all" = "Repeat All (click for repeat one)";
+"playback.tooltip.mode_repeat_one" = "Repeat One (click for shuffle)";
+"playback.tooltip.mode_shuffle" = "Shuffle (click for sequential)";
 "playback.tooltip.show_queue" = "Show Queue";
-"playback.tooltip.repeat_off" = "Repeat: Off (click for repeat all)";
-"playback.tooltip.repeat_all" = "Repeat: All (click for repeat one)";
-"playback.tooltip.repeat_one" = "Repeat: One (click to turn off)";
 "playback.tooltip.volume" = "Volume";
 "playback.track.none" = "Not Playing";
 "playback.status.playing" = "PLAYING";

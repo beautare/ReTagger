@@ -17,13 +17,50 @@ enum PlaybackRepeatMode: String, Codable, CaseIterable {
     case off
     case all
     case one
+}
 
-    /// 循环按钮点击时的下一个模式：off → all → one → off
-    var next: PlaybackRepeatMode {
+/// 播放模式：顺序 → 列表循环 → 单曲循环 → 随机，由单按钮轮换。
+/// 底层仍拆解为 order + repeatMode 两个维度，本枚举定义四种规范组合。
+enum PlaybackMode: CaseIterable {
+    case sequential
+    case repeatAll
+    case repeatOne
+    case shuffle
+
+    /// 模式按钮点击时的下一个模式
+    var next: PlaybackMode {
         switch self {
-        case .off: return .all
-        case .all: return .one
-        case .one: return .off
+        case .sequential: return .repeatAll
+        case .repeatAll: return .repeatOne
+        case .repeatOne: return .shuffle
+        case .shuffle: return .sequential
+        }
+    }
+
+    var order: PlaybackOrder {
+        self == .shuffle ? .shuffle : .sequential
+    }
+
+    /// 随机模式循环整个队列，播完不停止
+    var repeatMode: PlaybackRepeatMode {
+        switch self {
+        case .sequential: return .off
+        case .repeatAll: return .all
+        case .repeatOne: return .one
+        case .shuffle: return .all
+        }
+    }
+
+    /// 从底层两个维度归并出播放模式；随机优先于循环维度
+    init(order: PlaybackOrder, repeatMode: PlaybackRepeatMode) {
+        if order == .shuffle {
+            self = .shuffle
+        } else {
+            switch repeatMode {
+            case .off: self = .sequential
+            case .all: self = .repeatAll
+            case .one: self = .repeatOne
+            }
         }
     }
 }
