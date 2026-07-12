@@ -519,18 +519,26 @@ struct FileRowView: View {
                             }
                     )
                     .onHover { inside in
-                        isHoveringProgress = inside
-                        if inside {
+                        // 用状态标记保证 push/pop 严格配对；悬停中视图被移除时
+                        // onHover(false) 不会触发，由 onDisappear 兜底
+                        if inside, !isHoveringProgress {
                             NSCursor.pointingHand.push()
-                        } else {
+                        } else if !inside, isHoveringProgress {
                             NSCursor.pop()
                         }
+                        isHoveringProgress = inside
                     }
                 }
                 .frame(height: 16)
                 .transition(.opacity)
                 .padding(.top, 2)
                 .padding(.horizontal, 14) // 缩进 14pt 避开卡片底边圆角遮挡和裁剪缺陷
+                .onDisappear {
+                    if isHoveringProgress {
+                        NSCursor.pop()
+                        isHoveringProgress = false
+                    }
+                }
             }
         }
     }

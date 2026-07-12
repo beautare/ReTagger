@@ -39,6 +39,8 @@ final class TableHeaderMenuDelegate: NSObject, NSMenuDelegate {
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
+        // 关闭自动启用，否则下方手动设置的 isEnabled 会被 AppKit 校验机制覆盖
+        menu.autoenablesItems = false
 
         updateContextColumnIndex()
 
@@ -107,6 +109,8 @@ final class TableHeaderMenuDelegate: NSObject, NSMenuDelegate {
             )
             menuItem.target = self
             menuItem.representedObject = descriptor.column
+            // autoenablesItems 关闭后必选列需显式置灰（其 action 为 nil，不可切换）
+            menuItem.isEnabled = !descriptor.isRequired
 
             let isVisible = configuration.isVisible(descriptor.column)
             menuItem.state = (descriptor.isRequired || isVisible) ? .on : .off

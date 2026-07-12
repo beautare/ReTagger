@@ -81,9 +81,10 @@ extension MetadataReviewView {
         }
 
         // 冲突检测：单条确认时也需要检查是否与列表中其他文件冲突
-        let conflicts = detectConflicts(in: [metadata])
-        if !conflicts.isEmpty {
-            pendingConflicts = conflicts
+        let detection = detectConflicts(in: [metadata])
+        registerDiscoveredDiskFiles(detection.discoveredDiskFiles)
+        if !detection.groups.isEmpty {
+            pendingConflicts = detection.groups
             pendingConflictWriteSelection = [metadata.id]
             isShowingConflictResolution = true
             return
@@ -216,9 +217,10 @@ extension MetadataReviewView {
         }
 
         // 冲突检测：批量确认时检查所有待写入文件之间的冲突
-        let conflicts = detectConflicts(in: targets)
-        if !conflicts.isEmpty {
-            pendingConflicts = conflicts
+        let detection = detectConflicts(in: targets)
+        registerDiscoveredDiskFiles(detection.discoveredDiskFiles)
+        if !detection.groups.isEmpty {
+            pendingConflicts = detection.groups
             pendingConflictWriteSelection = selection
             isShowingConflictResolution = true
             return
@@ -499,6 +501,24 @@ extension MetadataReviewView {
     // MARK: - AI 处理与字段选择
 
     func processWithAI() {
+        guard !isProcessing else { return }
+
+        // 点数前置检查：与右键选择路径保持一致的失败反馈
+        let requiredCredits = currentFiles.count
+        let (isQuotaAvailable, currentBalance) = checkQuotaAvailability(requiredCount: requiredCredits)
+        if !isQuotaAvailable, let balance = currentBalance {
+            let userStatus = coordinator.authService.isAuthenticated
+                ? localizationManager.string("account.status.authenticated")
+                : localizationManager.string("account.status.guest")
+            coordinator.setError(
+                localizationManager.string(
+                    "error.insufficient_credits",
+                    arguments: requiredCredits, userStatus, balance
+                )
+            )
+            return
+        }
+
         isProcessing = true
         processingProgress = 0.0
 
@@ -802,9 +822,13 @@ extension MetadataReviewView {
 
     // MARK: - 同名冲突检测与解决
 
-    /// 检测即将写入的文件中是否存在同名冲突
-    /// 检测维度：1) finalTitle + finalArtist 逻辑重复；2) 目标文件名完全相同
-    func detectConflicts(in targets: [AudioMetadata]) -> [ConflictGroup] {
+    /// 检测即将写入的文件中是否存在同名冲突。
+    /// 检测维度：1) finalTitle + finalArtist 逻辑重复；2) 目标文件名完全相同。
+    /// 纯检测无副作用：磁盘上发现的未跟踪同名文件通过 discoveredDiskFiles 返回，
+    /// 由调用方决定是否并入列表
+    func detectConflicts(
+        in targets: [AudioMetadata]
+    ) -> (groups: [ConflictGroup], discoveredDiskFiles: [AudioMetadata]) {
         let targetIDs = Set(targets.map(\.id))
 
         // ── 维度 1：逻辑重复 — finalTitle + finalArtist ──
@@ -855,17 +879,12 @@ extension MetadataReviewView {
             }
         }
         
-        if !newDiskFiles.isEmpty {
-            currentFiles.append(contentsOf: newDiskFiles)
-            coordinator.audioFiles = currentFiles
-        }
-
         // ── 维度 3：文件名重复 ──
-        // 检测范围扩展到 currentFiles 全列表：
+        // 检测范围为 currentFiles 全列表加上磁盘上新发现的同名文件：
         //   - 待确认文件的有效目标文件名 = suggestedFileName ?? fileName
         //   - 其他状态文件的有效目标文件名 = fileName（当前实际文件名）
         var fileNameMap: [String: [AudioMetadata.ID]] = [:]
-        for metadata in currentFiles {
+        for metadata in currentFiles + newDiskFiles {
             let effectiveFileName: String
             if metadata.processingState == .awaitingConfirmation {
                 effectiveFileName = metadata.suggestedFileName ?? metadata.fileName
@@ -902,7 +921,15 @@ extension MetadataReviewView {
             }
         }
 
-        return groups
+        return (groups, newDiskFiles)
+    }
+
+    /// 将冲突检测中在磁盘上发现的未跟踪文件并入当前列表（冲突面板依赖 allFiles 呈现它们）
+    @MainActor
+    func registerDiscoveredDiskFiles(_ files: [AudioMetadata]) {
+        guard !files.isEmpty else { return }
+        currentFiles.append(contentsOf: files)
+        coordinator.audioFiles = currentFiles
     }
 
     /// 应用冲突解决结果后继续执行写入

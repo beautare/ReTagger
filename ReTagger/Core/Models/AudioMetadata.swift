@@ -142,7 +142,11 @@ struct AudioMetadata: Identifiable, Codable, Equatable {
                suggestedFolderPath != nil
     }
 
-    /// 是否存在与原始值不同的有效修正
+    /// 是否存在与原始值不同的有效修正。
+    /// 仅统计可确认且可落盘的维度，必须与 MetadataField 及元数据写入器的能力保持一致：
+    /// albumArtist / composer / comment / suggestedFolderPath 目前没有写盘通道，
+    /// 不参与判定，否则会产生无法执行的“待确认”状态（确认后什么也写不进去，
+    /// 随后又被自动标记为“已完成”）
     var hasEffectiveCorrections: Bool {
         if AudioMetadata.hasMeaningfulChange(original: originalTitle, corrected: correctedTitle) {
             return true
@@ -159,23 +163,7 @@ struct AudioMetadata: Identifiable, Codable, Equatable {
         if AudioMetadata.hasMeaningfulChange(original: originalYear, corrected: correctedYear) {
             return true
         }
-        if AudioMetadata.hasMeaningfulChange(original: originalAlbumArtist, corrected: correctedAlbumArtist) {
-            return true
-        }
-        if AudioMetadata.hasMeaningfulChange(original: originalComposer, corrected: correctedComposer) {
-            return true
-        }
-        if AudioMetadata.hasMeaningfulChange(original: originalComment, corrected: correctedComment) {
-            return true
-        }
         if AudioMetadata.hasMeaningfulChange(original: fileName, corrected: suggestedFileName) {
-            return true
-        }
-        if let suggestedFolderPath,
-           AudioMetadata.hasMeaningfulChange(
-                original: filePath.deletingLastPathComponent().path,
-                corrected: suggestedFolderPath
-           ) {
             return true
         }
         return false

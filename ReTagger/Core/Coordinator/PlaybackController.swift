@@ -120,7 +120,35 @@ final class PlaybackController: ObservableObject {
         let clamped = min(max(newVolume, 0), 1)
         volume = clamped
         service.setVolume(clamped)
-        UserDefaults.standard.set(clamped, forKey: Self.volumeDefaultsKey)
+        // 拖动音量滑杆时每帧都会进入此方法，持久化做短防抖，避免高频写 UserDefaults
+        volumePersistTask?.cancel()
+        volumePersistTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            UserDefaults.standard.set(clamped, forKey: Self.volumeDefaultsKey)
+        }
+    }
+
+    private var volumePersistTask: Task<Void, Never>?
+
+    /// “上一曲”可用性：存在可回退的播放历史
+    var canPlayPrevious: Bool {
+        !state.history.isEmpty
+    }
+
+    /// “下一曲”可用性：队列中还有后续曲目，或列表循环（含随机模式）下可回绕到队首，
+    /// 与 AudioPlaybackService.next() 的回绕行为保持一致
+    var canPlayNext: Bool {
+        guard
+            let currentID = state.currentTrackID,
+            let currentIndex = state.queueIDs.firstIndex(of: currentID)
+        else {
+            return false
+        }
+        if currentIndex + 1 < state.queueIDs.count {
+            return true
+        }
+        return state.repeatMode == .all
     }
 
     /// 当前播放模式。以服务端状态为唯一判定来源：本地 state 镜像经异步发布更新，

@@ -158,12 +158,10 @@ extension MetadataReviewView {
         var permissionDenied: [AudioMetadata] = []
 
         for metadata in candidates {
-            if playbackController.state.currentTrackID == metadata.id {
-                playbackController.remove(metadata)
-            }
-
             do {
                 try fileManager.trashItem(at: metadata.filePath, resultingItemURL: nil)
+                // 删除成功后才从播放队列移除；若先移除再删除，
+                // 删除失败时会平白打断当前播放
                 removedIDs.insert(metadata.id)
                 playbackController.remove(metadata)
             } catch {
@@ -253,10 +251,10 @@ extension MetadataReviewView {
         !resolveSelection(selection).isEmpty
     }
     
-    /// 检查当前剩余点数是否足够处理指定数量的文件
+    /// 检查当前剩余点数是否足够处理指定数量的文件（选择路径与全量路径共用）
     /// - Parameter requiredCount: 需要处理的文件数量
     /// - Returns: 包含检查结果和当前余额的元组
-    private func checkQuotaAvailability(requiredCount: Int) -> (isAvailable: Bool, balance: Int?) {
+    func checkQuotaAvailability(requiredCount: Int) -> (isAvailable: Bool, balance: Int?) {
         // 获取当前余额（无论登录与否，authService.balance 都会通过轮询保持更新）
         // 未登录时，设备配额会通过 /api/v1/tokens/check 获取并更新到 authService.balance
         let currentBalance = coordinator.authService.balance
@@ -270,6 +268,12 @@ extension MetadataReviewView {
     }
 
     func processSelectionWithAI(selection: Set<AudioMetadata.ID>) {
+        // 重入保护：右键菜单不受 isProcessing 禁用，避免两个并发任务共享进度状态
+        guard !isProcessing else {
+            coordinator.appendLog(.warning, "已有 AI 打标签任务进行中，忽略重复触发")
+            return
+        }
+
         // 与右键菜单的启用条件保持一致：跳过处理中与待确认的条目，
         // 避免混合选择时把不该处理的行送去 AI（并多扣点数）
         let selectedItems = resolveSelection(selection).filter { metadata in

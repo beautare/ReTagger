@@ -120,6 +120,13 @@ class MetadataReviewTableView: NSTableView {
         self.backgroundColor.set()
         dirtyRect.fill()
     }
+
+    /// Esc 清空当前行选择。走响应链而非 SwiftUI 快捷键：
+    /// 单元格编辑/搜索框聚焦时字段编辑器会先消费 Esc（取消编辑），互不抢占
+    override func cancelOperation(_ sender: Any?) {
+        guard !selectedRowIndexes.isEmpty else { return }
+        deselectAll(nil)
+    }
 }
 
 final class MetadataTableViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSource, CustomTableHeaderViewDelegate {
@@ -306,11 +313,37 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
         if selectionChanged {
             syncSelectionToTable()
         }
-        
+
+        syncSortDescriptorsToTable()
+
         if let scrollToId = scrollTo, let index = files.firstIndex(where: { $0.id == scrollToId }) {
             tableView.scrollRowToVisible(index)
             onDidScroll?()
         }
+    }
+
+    /// 将 SwiftUI 侧的排序状态同步到表头（启动恢复排序偏好时补齐排序箭头，
+    /// 并保证首次点击列头时从当前方向继续而非从升序重来）
+    private var isSyncingSortDescriptors = false
+
+    private func syncSortDescriptorsToTable() {
+        let desired: [NSSortDescriptor] = sortOrder.compactMap { comparator in
+            guard let column = MetadataColumn.allCases.first(where: {
+                self.comparator(for: $0, ascending: true)?.keyPath == comparator.keyPath
+            }) else { return nil }
+            return NSSortDescriptor(key: column.rawValue, ascending: comparator.order == .forward)
+        }
+        guard !desired.isEmpty else { return }
+
+        let current = tableView.sortDescriptors
+        let matches = current.count == desired.count && zip(current, desired).allSatisfy {
+            $0.key == $1.key && $0.ascending == $1.ascending
+        }
+        guard !matches else { return }
+
+        isSyncingSortDescriptors = true
+        tableView.sortDescriptors = desired
+        isSyncingSortDescriptors = false
     }
 
     /// 找出内容有变化且无需全量刷新的行索引
@@ -532,9 +565,11 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
     }
     
     private func beginCellEditing(cellView: MetadataTableCellView, row: Int, column: MetadataColumn) {
+        guard row >= 0, row < files.count else { return }
+
         // 如果有正在编辑的单元格，先结束编辑
         currentEditingCell?.endEditing(commit: true)
-        
+
         let metadata = files[row]
         currentEditingCell = cellView
         
@@ -572,13 +607,25 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
             }
             
             let isUndoable = canUndo?(file) ?? false
+            // 点击时按 ID 重查最新数据：闭包捕获的 file 是配置单元格时的快照，
+            // 状态可能已被其他入口（详情面板、批量操作）更新
+            let fileID = file.id
             view?.configure(
                 metadata: file,
                 localizationManager: localizationManager,
                 isUndoable: isUndoable,
-                onConfirm: { [weak self] in self?.onConfirmAction?(file) },
-                onDiscard: { [weak self] in self?.onDiscardAction?(file) },
-                onUndo: { [weak self] in self?.onUndoAction?(file) }
+                onConfirm: { [weak self] in
+                    guard let self, let current = self.files.first(where: { $0.id == fileID }) else { return }
+                    self.onConfirmAction?(current)
+                },
+                onDiscard: { [weak self] in
+                    guard let self, let current = self.files.first(where: { $0.id == fileID }) else { return }
+                    self.onDiscardAction?(current)
+                },
+                onUndo: { [weak self] in
+                    guard let self, let current = self.files.first(where: { $0.id == fileID }) else { return }
+                    self.onUndoAction?(current)
+                }
             )
             return view
         }
@@ -599,7 +646,11 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
                 view?.editButtonToolTip = localizationManager?.string("table.edit_tooltip")
                 view?.onEditButtonClicked = { [weak self] cellView in
                     guard let self else { return }
-                    self.beginCellEditing(cellView: cellView, row: row, column: column)
+                    // 行号必须在点击时现算：增量插入/删除行后，
+                    // 配置单元格时捕获的行号已失效，会编辑到错误的文件
+                    let currentRow = self.tableView.row(for: cellView)
+                    guard currentRow >= 0, currentRow < self.files.count else { return }
+                    self.beginCellEditing(cellView: cellView, row: currentRow, column: column)
                 }
             } else {
                 view?.onEditButtonClicked = nil
@@ -610,6 +661,8 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
     }
     
     func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
+        // 程序化同步表头箭头时不回传，避免与 SwiftUI 侧排序状态互相触发
+        guard !isSyncingSortDescriptors else { return }
         let newComparators: [KeyPathComparator<AudioMetadata>] = tableView.sortDescriptors.compactMap { descriptor in
             guard
                 let key = descriptor.key,
@@ -841,8 +894,10 @@ extension MetadataTableViewController: NSMenuDelegate {
     }
     
     private func currentContextSelection() -> Set<AudioMetadata.ID> {
+        // 菜单打开期间 files 可能被异步收缩，clickedRow 需做上界校验
         let clickedRow = tableView.clickedRow
-        if clickedRow >= 0 && !tableView.selectedRowIndexes.contains(clickedRow) {
+        if clickedRow >= 0, clickedRow < files.count,
+           !tableView.selectedRowIndexes.contains(clickedRow) {
             return [files[clickedRow].id]
         }
         return selection
@@ -1485,10 +1540,25 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         onEditButtonClicked?(self)
     }
     
+    /// 手型光标是否已入栈：视图在悬停中被复用/移除时 mouseExited 不会触发，
+    /// 需在 viewWillMove(toWindow:) 兜底 pop，保证 push/pop 严格配对
+    private var isPointerCursorActive = false
+
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        super.viewWillMove(toWindow: newWindow)
+        if newWindow == nil, isPointerCursorActive {
+            NSCursor.pop()
+            isPointerCursorActive = false
+        }
+    }
+
     override func mouseEntered(with event: NSEvent) {
         if let info = event.trackingArea?.userInfo as? [String: String],
            info["target"] == "editButton" {
-            NSCursor.pointingHand.push()
+            if !isPointerCursorActive {
+                NSCursor.pointingHand.push()
+                isPointerCursorActive = true
+            }
             NSAnimationContext.runAnimationGroup { ctx in
                 ctx.duration = 0.18
                 ctx.allowsImplicitAnimation = true
@@ -1517,7 +1587,10 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
     override func mouseExited(with event: NSEvent) {
         if let info = event.trackingArea?.userInfo as? [String: String],
            info["target"] == "editButton" {
-            NSCursor.pop()
+            if isPointerCursorActive {
+                NSCursor.pop()
+                isPointerCursorActive = false
+            }
             NSAnimationContext.runAnimationGroup { ctx in
                 ctx.duration = 0.2
                 ctx.allowsImplicitAnimation = true

@@ -82,14 +82,12 @@ struct PlaybackBarView: View {
                         .frame(maxHeight: .infinity, alignment: .center)
                         .padding(.vertical, currentPadding)
                         .contentShape(Rectangle())
-                        .simultaneousGesture(
-                            TapGesture()
-                                .onEnded {
-                                    if shouldRevealForCurrentEvent() {
-                                        playbackController.requestRevealCurrentTrack()
-                                    }
-                                }
-                        )
+                        // 点击空白区域定位当前曲目。用普通 TapGesture 而非 simultaneousGesture：
+                        // 子级按钮/滑杆的手势天然优先并阻断父级 Tap，
+                        // 点按钮不会连带触发定位（SwiftUI 控件无法用 NSControl 命中测试排除）
+                        .onTapGesture {
+                            playbackController.requestRevealCurrentTrack()
+                        }
                         .onHover { hovering in
                             // 播放条空白区域显示手型指针，暗示可点击定位。
                             // 用状态标记保证 push/pop 严格配对：悬停中视图被隐藏时
@@ -315,10 +313,14 @@ struct PlaybackBarView: View {
     private var controlSection: some View {
         let isActive = state.isActive
         let isPlaying = timeline.isPlaying
-        let canGoPrevious = !state.history.isEmpty
-        let canGoNext = nextTrackAvailable
+        // 可用性统一由 PlaybackController 判定，包含列表循环/随机模式下队尾回绕的场景
+        let canGoPrevious = playbackController.canPlayPrevious
+        let canGoNext = playbackController.canPlayNext
         let isQueueVisible = playbackController.isQueuePanelVisible
 
+        // 播放控制不挂 .keyboardShortcut：无修饰键或普通修饰键的 key equivalent
+        // 会在文本输入聚焦时抢走按键（空格、⌘←/→ 等）。
+        // 全部快捷键统一走 setupKeyMonitor 的本地监视器，那里有文本焦点豁免
         return HStack(spacing: DesignSystem.Spacing.xs) {
             controlButton(
                 icon: "backward.end.fill",
@@ -327,7 +329,6 @@ struct PlaybackBarView: View {
                 action: playbackController.playPrevious
             )
             .help(localizationManager.string("playback.tooltip.previous"))
-            .keyboardShortcut(.leftArrow, modifiers: [.command])
 
             controlButton(
                 icon: isPlaying ? "pause.fill" : "play.fill",
@@ -336,7 +337,6 @@ struct PlaybackBarView: View {
                 action: playbackController.togglePlayPause
             )
             .help(localizationManager.string(isPlaying ? "playback.tooltip.pause" : "playback.tooltip.play"))
-            .keyboardShortcut(.space, modifiers: [])
 
             controlButton(
                 icon: "forward.end.fill",
@@ -345,7 +345,6 @@ struct PlaybackBarView: View {
                 action: playbackController.playNext
             )
             .help(localizationManager.string("playback.tooltip.next"))
-            .keyboardShortcut(.rightArrow, modifiers: [.command])
 
             Divider()
                 .frame(height: 28)
@@ -366,7 +365,6 @@ struct PlaybackBarView: View {
             }
             .buttonStyle(.plain)
             .help(localizationManager.string(playbackModeTooltipKey))
-            .keyboardShortcut("m", modifiers: [.option])
             .disabled(!isActive)
             .opacity(isActive ? 1 : 0.4)
 
@@ -386,6 +384,8 @@ struct PlaybackBarView: View {
             }
             .buttonStyle(.plain)
             .help(localizationManager.string("playback.tooltip.volume"))
+            .disabled(!isActive)
+            .opacity(isActive ? 1 : 0.4)
             .popover(isPresented: $isVolumePopoverPresented, arrowEdge: .top) {
                 volumePopoverContent
             }
@@ -514,8 +514,20 @@ struct PlaybackBarView: View {
 
     /// 切换播放模式并复用中央 HUD 即时提示新状态，点击与 ⌥M 快捷键共用此入口
     private func cyclePlaybackModeWithFeedback() {
-        playbackController.cyclePlaybackMode()
-        let mode = playbackController.playbackMode
+        Self.cyclePlaybackModeWithFeedback(
+            controller: playbackController,
+            localization: localizationManager
+        )
+    }
+
+    /// 静态实现供按钮点击与键盘监视器共用：监视器闭包只捕获两个对象引用，
+    /// 不依赖视图结构体的生命周期
+    static func cyclePlaybackModeWithFeedback(
+        controller: PlaybackController,
+        localization: LocalizationManager
+    ) {
+        controller.cyclePlaybackMode()
+        let mode = controller.playbackMode
 
         let nameKey: String
         let hudIcon: String
@@ -535,7 +547,7 @@ struct PlaybackBarView: View {
             hudIcon = "shuffle"
         }
         // 模式名称需要阅读时间，停留比快进/快退的 ±5s 提示更长
-        playbackController.showHUD(message: localizationManager.string(nameKey), icon: hudIcon, duration: 1.2)
+        controller.showHUD(message: localization.string(nameKey), icon: hudIcon, duration: 1.2)
     }
 
     private var volumeIconName: String {
@@ -613,16 +625,6 @@ struct PlaybackBarView: View {
         return "-\(remaining.asPlaybackTimeString)"
     }
 
-    private var nextTrackAvailable: Bool {
-        guard
-            let currentID = state.currentTrackID,
-            let currentIndex = state.queueIDs.firstIndex(of: currentID)
-        else {
-            return false
-        }
-        return currentIndex + 1 < state.queueIDs.count
-    }
-
     private var barBackground: some View {
         let isSpectrumActive = timeline.isPlaying
 
@@ -693,28 +695,11 @@ struct PlaybackBarView: View {
         )
     }
 
-    private func shouldRevealForCurrentEvent() -> Bool {
-        guard let event = NSApp.currentEvent,
-              let window = event.window,
-              let hitView = window.contentView?.hitTest(event.locationInWindow)
-        else {
-            return true
-        }
-        return !isInteractiveControl(hitView)
-    }
-
-    private func isInteractiveControl(_ view: NSView?) -> Bool {
-        guard let view else { return false }
-        if view is NSControl {
-            return true
-        }
-        return isInteractiveControl(view.superview)
-    }
-
     private func setupKeyMonitor() {
         #if canImport(AppKit)
         guard keyMonitor == nil else { return }
         let controller = self.playbackController
+        let localization = self.localizationManager
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak controller] event in
             guard let controller else { return event }
             // 如果音频不是 active，则不处理
@@ -722,21 +707,44 @@ struct PlaybackBarView: View {
 
             // 如果当前的焦点是文本输入（字段编辑器为 NSTextView，普通输入框为 NSTextField），
             // 则不拦截按键；用类型判断替代类名字符串匹配，避免漏判子类
-            if let window = NSApp.keyWindow,
-               let responder = window.firstResponder,
-               responder is NSText || responder is NSTextField {
+            let responder = NSApp.keyWindow?.firstResponder
+            if let responder, responder is NSText || responder is NSTextField {
                 return event
             }
 
-            // 确保没有修饰键（比如 Command / Option / Control / Shift）
-            let hasModifiers = !event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty
-            if hasModifiers {
+            let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
+
+            // Left Arrow: 123 / Right Arrow: 124 / Space: 49 / M: 46
+            // ⌘←/⌘→ 切换上一曲/下一曲；不可用时放行按键，不吞掉系统默认行为
+            if modifiers == [.command] {
+                if event.keyCode == 123, controller.canPlayPrevious {
+                    controller.playPrevious()
+                    return nil
+                }
+                if event.keyCode == 124, controller.canPlayNext {
+                    controller.playNext()
+                    return nil
+                }
                 return event
             }
 
-            // Left Arrow: 123
-            // Right Arrow: 124
-            // Space Key: 49
+            // ⌥M 轮换播放模式，与模式按钮共用同一实现
+            if modifiers == [.option], event.keyCode == 46 {
+                PlaybackBarView.cyclePlaybackModeWithFeedback(
+                    controller: controller,
+                    localization: localization
+                )
+                return nil
+            }
+
+            guard modifiers.isEmpty else { return event }
+
+            // 侧边栏目录树依赖 ←/→ 展开与折叠节点，焦点在 NSOutlineView 时放行
+            if let responder, responder is NSOutlineView,
+               event.keyCode == 123 || event.keyCode == 124 {
+                return event
+            }
+
             if event.keyCode == 123 {
                 controller.seekBackward()
                 return nil // 消耗事件，不传递

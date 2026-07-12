@@ -444,6 +444,8 @@ struct MetadataReviewView: View {
             .onChange(of: columnConfiguration) { newConfig in
                 coordinator.settings.tableColumnConfiguration = newConfig
                 coordinator.settings.save()
+                // 搜索过滤依赖可见列集合，列显隐变化后需重算缓存
+                updateFilteredFiles()
             }
             .onReceive(coordinator.aiMetadataService.$progress.removeDuplicates()) { newValue in
                 processingProgress = newValue
@@ -470,15 +472,9 @@ struct MetadataReviewView: View {
                     .padding(.top, queuePanelTopPadding)
             }
 
-            // 隐藏的 Esc 快捷键捕获按钮，仅在选中项非空时激活，用于清空曲目选择
-            Button("") {
-                tableSelection.removeAll()
-            }
-            .keyboardShortcut(.cancelAction)
-            .disabled(tableSelection.isEmpty)
-            .buttonStyle(.plain)
-            .frame(width: 0, height: 0)
-            .opacity(0)
+            // Esc 清空曲目选择改由 MetadataReviewTableView.cancelOperation 处理：
+            // SwiftUI 的 .keyboardShortcut(.cancelAction) 是 key equivalent，
+            // 会在单元格编辑/搜索框聚焦时抢走 Esc，导致编辑无法取消
         }
         .toolbar {
             ToolbarItem(placement: .principal) {
