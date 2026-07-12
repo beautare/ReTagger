@@ -9,7 +9,11 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var coordinator: AppCoordinator
+    #if SPARKLE_ENABLED
+    @EnvironmentObject var sparkleUpdater: SparkleUpdaterService
+    #else
     @EnvironmentObject var updateService: AppUpdateService
+    #endif
     @EnvironmentObject var localizationManager: LocalizationManager
     @Environment(\.presentationMode) var presentationMode
     
@@ -137,13 +141,75 @@ struct SettingsView: View {
                 }
                 
                 // 软件更新卡片
+                #if SPARKLE_ENABLED
+                // 直发渠道：开关与频率直接读写 Sparkle 持久化状态，
+                // 检查、下载与安装由 Sparkle 标准界面接管
+                SettingsCard(title: localizationManager.string("settings.group.update")) {
+                    Toggle(localizationManager.string("settings.update.auto_check"), isOn: sparkleAutoCheckBinding)
+
+                    if sparkleUpdater.automaticallyChecksForUpdates {
+                        Divider()
+                            .padding(.vertical, 2)
+
+                        HStack {
+                            Text(localizationManager.string("settings.update.check_frequency"))
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
+                            Spacer()
+                            Picker("", selection: sparkleIntervalBinding) {
+                                ForEach(UpdateCheckInterval.allCases) { interval in
+                                    Text(localizationManager.string(interval.localizationKey)).tag(interval)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .frame(width: 160)
+                        }
+                    }
+
+                    Divider()
+                        .padding(.vertical, 2)
+
+                    HStack {
+                        Text(localizationManager.string("settings.update.current_version_label"))
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                        Text("\(AppConfiguration.InfoPlist.appVersion) (\(AppConfiguration.InfoPlist.buildNumber))")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                    .padding(.vertical, 2)
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(localizationManager.string("settings.update.last_check_label"))
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
+                            if let date = sparkleUpdater.lastUpdateCheckDate {
+                                Text(lastCheckFormatted(date))
+                                    .font(DesignSystem.Typography.caption2)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text(localizationManager.string("settings.update.never_checked"))
+                                    .font(DesignSystem.Typography.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
+                        Spacer()
+
+                        Button(localizationManager.string("settings.update.check_now")) {
+                            sparkleUpdater.checkForUpdates()
+                        }
+                        .disabled(!sparkleUpdater.canCheckForUpdates)
+                        .buttonStyle(.bordered)
+                    }
+                    .padding(.top, 2)
+                }
+                #else
                 SettingsCard(title: localizationManager.string("settings.group.update")) {
                     Toggle(localizationManager.string("settings.update.auto_check"), isOn: binding($coordinator.settings.autoCheckForUpdates))
-                    
+
                     if coordinator.settings.autoCheckForUpdates {
                         Divider()
                             .padding(.vertical, 2)
-                        
+
                         HStack {
                             Text(localizationManager.string("settings.update.check_frequency"))
                                 .foregroundColor(DesignSystem.Colors.textPrimary)
@@ -156,16 +222,16 @@ struct SettingsView: View {
                             .pickerStyle(.menu)
                             .frame(width: 160)
                         }
-                        
+
                         Divider()
                             .padding(.vertical, 2)
-                        
+
                         Toggle(localizationManager.string("settings.update.auto_prompt"), isOn: binding($coordinator.settings.showUpdateNotifications))
                     }
-                    
+
                     Divider()
                         .padding(.vertical, 2)
-                    
+
                     HStack {
                         Text(localizationManager.string("settings.update.current_version_label"))
                             .foregroundColor(DesignSystem.Colors.textPrimary)
@@ -174,7 +240,7 @@ struct SettingsView: View {
                         Spacer()
                     }
                     .padding(.vertical, 2)
-                    
+
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(localizationManager.string("settings.update.last_check_label"))
@@ -189,9 +255,9 @@ struct SettingsView: View {
                                     .foregroundColor(.secondary)
                             }
                         }
-                        
+
                         Spacer()
-                        
+
                         Button(localizationManager.string("settings.update.check_now")) {
                             updateService.checkForUpdate()
                         }
@@ -200,6 +266,7 @@ struct SettingsView: View {
                     }
                     .padding(.top, 2)
                 }
+                #endif
             }
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 2)
@@ -207,6 +274,26 @@ struct SettingsView: View {
         }
     }
     
+    #if SPARKLE_ENABLED
+    /// Sparkle 自动检查开关绑定（写入即由 Sparkle 持久化）
+    private var sparkleAutoCheckBinding: Binding<Bool> {
+        Binding(
+            get: { sparkleUpdater.automaticallyChecksForUpdates },
+            set: { sparkleUpdater.automaticallyChecksForUpdates = $0 }
+        )
+    }
+
+    /// Sparkle 检查间隔与 UpdateCheckInterval 档位的映射绑定
+    private var sparkleIntervalBinding: Binding<UpdateCheckInterval> {
+        Binding(
+            get: {
+                UpdateCheckInterval.allCases.first { $0.timeInterval == sparkleUpdater.updateCheckInterval } ?? .monthly
+            },
+            set: { sparkleUpdater.updateCheckInterval = $0.timeInterval }
+        )
+    }
+    #endif
+
     private var processingBackupTab: some View {
         ScrollView {
             VStack(spacing: DesignSystem.Spacing.md) {

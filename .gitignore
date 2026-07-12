@@ -34,3 +34,6 @@ memory/
 *.ipa
 *.dmg
 *.zip
+
+# 直发渠道打包/appcast 产物
+dist/

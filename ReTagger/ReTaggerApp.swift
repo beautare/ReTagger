@@ -10,8 +10,12 @@ import SwiftUI
 struct ReTaggerApp: App {
     @StateObject private var localizationManager: LocalizationManager
     @StateObject private var coordinator: AppCoordinator
+    #if SPARKLE_ENABLED
+    @StateObject private var sparkleUpdater = SparkleUpdaterService()
+    #else
     @StateObject private var updateService = AppUpdateService()
     @State private var showUpdateAlert = false
+    #endif
     
     init() {
         AppConfiguration.printConfiguration()
@@ -37,8 +41,18 @@ struct ReTaggerApp: App {
                 .environmentObject(coordinator.playbackController.timelineStore)
                 .environmentObject(coordinator.playbackController.spectrumDataStore)
                 .environmentObject(localizationManager)
-                .environmentObject(updateService)
                 .environment(\.locale, localizationManager.locale)
+                #if SPARKLE_ENABLED
+                .environmentObject(sparkleUpdater)
+                .overlay(alignment: .topTrailing) {
+                    // 首启"开启自动更新？"授权气泡（参考 1.jpg / Ghostty），
+                    // 后续检查、下载与安装由 Sparkle 标准界面接管
+                    UpdatePermissionPromptView(updater: sparkleUpdater)
+                        .padding(.top, DesignSystem.Spacing.xs)
+                        .padding(.trailing, DesignSystem.Spacing.md)
+                }
+                #else
+                .environmentObject(updateService)
                 .onAppear {
                     // 启动时自动后台检查更新（尊重用户偏好中的频率设置）
                     updateService.checkForUpdateIfNeeded(settings: coordinator.settings)
@@ -56,6 +70,7 @@ struct ReTaggerApp: App {
                     UpdateAlertView(updateService: updateService)
                         .environmentObject(localizationManager)
                 }
+                #endif
         }
         .commands {
             CommandGroup(replacing: .appSettings) {
@@ -86,6 +101,14 @@ struct ReTaggerApp: App {
                 }
             }
             CommandGroup(after: .appInfo) {
+                #if SPARKLE_ENABLED
+                Button(action: {
+                    sparkleUpdater.checkForUpdates()
+                }) {
+                    Label(localizationManager.string("update.check_for_updates"), systemImage: "arrow.triangle.2.circlepath")
+                }
+                .disabled(!sparkleUpdater.canCheckForUpdates)
+                #else
                 Button(action: {
                     showUpdateAlert = true
                     updateService.checkForUpdate()
@@ -93,6 +116,7 @@ struct ReTaggerApp: App {
                     Label(localizationManager.string("update.check_for_updates"), systemImage: "arrow.triangle.2.circlepath")
                 }
                 .disabled(updateService.updateStatus == .checking)
+                #endif
             }
         }
     }

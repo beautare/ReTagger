@@ -394,6 +394,11 @@
 "update.release_notes" = "更新说明";
 "update.error" = "检查更新失败";
 "update.retry" = "重试";
+"update.permission.badge" = "开启自动更新？";
+"update.permission.title" = "开启自动更新？";
+"update.permission.message" = "ReTagger 可以在后台自动检查新版本，发现更新时提示您一键安装。";
+"update.permission.not_now" = "暂不";
+"update.permission.allow" = "允许";
 
 "error.playback.unsupported_dsd" = "暂不支持播放 DSD (DSF/DFF) 格式的音频。此格式常为母带级 SACD/DSD 文件，内置播放器无法直接播放，但您可以正常通过 AI 整理和保存元数据标签。";
 "action.clear_all_history" = "清除所有历史记录";

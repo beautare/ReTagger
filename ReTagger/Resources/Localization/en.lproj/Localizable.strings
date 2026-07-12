@@ -356,6 +356,11 @@
 "update.release_notes" = "Release Notes";
 "update.error" = "Update check failed";
 "update.retry" = "Retry";
+"update.permission.badge" = "Enable Automatic Updates?";
+"update.permission.title" = "Enable automatic updates?";
+"update.permission.message" = "ReTagger can automatically check for updates in the background and let you install them in one click.";
+"update.permission.not_now" = "Not Now";
+"update.permission.allow" = "Allow";
 
 "error.playback.unsupported_dsd" = "Playback of DSD (DSF/DFF) files is currently not supported. This is a master-grade SACD/DSD format which cannot be decoded by the built-in player, but you can still edit and save its metadata tags.";
 "action.clear_all_history" = "Clear All History";

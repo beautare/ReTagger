@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+  直发渠道（GitHub Release DMG）签名所用 entitlements。
+  与 App Store 渠道保持一致的沙盒能力（网络、用户选择文件、书签），
+  额外加入 Sparkle 沙盒安装所需的 mach-lookup 例外（-spks / -spki）。
+  注意：com.apple.developer.applesignin 为受限权限，Developer ID 分发
+  需要配套描述文件才能签入，直发渠道当前不包含该能力。
+-->
+<dict>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+	<key>com.apple.security.files.bookmarks.app-scope</key>
+	<true/>
+	<key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+	<array>
+		<string>vip.retagger.macapp-spks</string>
+		<string>vip.retagger.macapp-spki</string>
+	</array>
+</dict>
+</plist>

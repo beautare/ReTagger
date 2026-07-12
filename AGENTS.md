@@ -36,6 +36,12 @@ ReTagger 面向音乐制作与收藏场景，利用 AI 协助批量整理 MP3、
 - **显式状态**：清晰标识可变状态与持久化数据通道，预防隐式副作用。
 - **防御性编程**：对外部输入和 AI 输出执行校验，失败时提供明确回退路径。
 
+## 发布渠道
+- **双渠道分发**：App Store（Xcode Archive 手动提交，应用内更新走 `AppUpdateService` 跳转商店）与 GitHub Release 直发（DMG + Sparkle 自动更新）。
+- **渠道差异只通过 `SPARKLE_ENABLED` 编译条件表达**：日常 Debug/Release 构建与 App Store 流程完全不含 Sparkle；直发差异（编译条件、框架链接与嵌入、Info.plist 更新源、entitlements）全部由 `scripts/package_direct.sh` 在打包时注入，不修改 Xcode 工程。
+- **发布流程**：`scripts/release.sh X.Y.Z` 更新版本并打 tag → 推送 tag 触发 `.github/workflows/release.yml` → 自动构建 arm64 / x86_64 双 DMG（Developer ID 签名 + 公证）、生成自动 changelog 的 GitHub Release，并将 `appcast-arm64.xml` / `appcast-x86_64.xml` 发布到 gh-pages 供 Sparkle 拉取。
+- 直发版首启以授权气泡（`UpdatePermissionPromptView`）征询"自动检查更新"，选择由 Sparkle 持久化；直发 entitlements 暂不含 Sign in with Apple（受限权限需 Developer ID 描述文件）。
+
 ## 研发流程
 - 功能规划以“可交付场景”为单位，确保每次变更对用户流程有直接提升。
 - 评审重点在于架构契合度、文件安全性、AI 结果校验机制以及性能边界。
