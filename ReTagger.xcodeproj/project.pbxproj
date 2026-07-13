@@ -266,27 +266,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		B9E9F1012F10000000000001 /* EmbedDotEnvLocal */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/.env.local",
-			);
-			name = EmbedDotEnvLocal;
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/.env.local",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\n\nENV_FILE=\"${SRCROOT}/.env.local\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n\nif [ -f \"${ENV_FILE}\" ]; then\n  mkdir -p \"${DEST_DIR}\"\n  cp -f \"${ENV_FILE}\" \"${DEST_DIR}/.env.local\"\nelse\n  echo \"warning: ${ENV_FILE} 不存在，App 包内不含 .env.local，Google 登录等依赖该配置的功能将不可用\"\nfi\n";
-		};
 		B9A6819C2F0FC1F900F6B4A2 /* EnsureTagLibSymlinks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -314,6 +293,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "set -euo pipefail\n\nASSET_ROOT=\"${PROJECT_DIR}/ReTagger/Support/TagLib\"\nFRAMEWORKS_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nmkdir -p \"${FRAMEWORKS_DIR}\"\n\ncopy_and_link() {\n  local name=\"$1\"\n  local source=\"${ASSET_ROOT}/${name}.2.1.1.dylib\"\n  if [ ! -f \"${source}\" ]; then\n    echo \"error: 缺少库文件 ${source}\" >&2\n    exit 1\n  fi\n\n  local dest=\"${FRAMEWORKS_DIR}/${name}.2.1.1.dylib\"\n  cp -f \"${source}\" \"${dest}\"\n  chmod 755 \"${dest}\"\n\n  ln -fhs \"${name}.2.1.1.dylib\" \"${FRAMEWORKS_DIR}/${name}.2.dylib\"\n  ln -fhs \"${name}.2.1.1.dylib\" \"${FRAMEWORKS_DIR}/${name}.dylib\"\n\n  if [ \"${CODE_SIGNING_ALLOWED:-YES}\" = \"YES\" ] && [ -n \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ] && [ \"${EXPANDED_CODE_SIGN_IDENTITY}\" != \"-\" ]; then\n    /usr/bin/codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${dest}\"\n  fi\n}\n\ncopy_and_link libtag\ncopy_and_link libtag_c\n";
+		};
+		B9E9F1012F10000000000001 /* EmbedDotEnvLocal */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.env.local",
+			);
+			name = EmbedDotEnvLocal;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/.env.local",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\n\nENV_FILE=\"${SRCROOT}/.env.local\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n\nif [ -f \"${ENV_FILE}\" ]; then\n  mkdir -p \"${DEST_DIR}\"\n  cp -f \"${ENV_FILE}\" \"${DEST_DIR}/.env.local\"\nelse\n  echo \"warning: ${ENV_FILE} 不存在，App 包内不含 .env.local，Google 登录等依赖该配置的功能将不可用\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

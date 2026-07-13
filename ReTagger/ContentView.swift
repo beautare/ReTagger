@@ -90,6 +90,15 @@ struct ContentView: View {
             }
             .animation(.spring(response: 0.25, dampingFraction: 0.65, blendDuration: 0), value: playbackController.hudMessage)
         )
+        .overlay(
+            Group {
+                if let fontScaleHUD = coordinator.fontScaleHUD {
+                    FontScaleHUDView(scale: fontScaleHUD.scale)
+                        .transition(.opacity.combined(with: .scale(scale: 0.85)))
+                }
+            }
+            .animation(.spring(response: 0.25, dampingFraction: 0.65, blendDuration: 0), value: coordinator.fontScaleHUD)
+        )
         .onAppear {
             WindowTitleManager.update(to: currentWindowTitle)
         }

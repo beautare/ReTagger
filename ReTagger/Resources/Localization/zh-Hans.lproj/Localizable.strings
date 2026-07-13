@@ -426,8 +426,6 @@
 "settings.display.font_scale.large" = "大";
 "settings.display.font_scale.extra_large" = "特大";
 "settings.display.font_scale.huge" = "超大";
-"hud.font_scale.at_max" = "已达到最大字体";
-"hud.font_scale.at_min" = "已达到最小字体";
 
 /* Settings Processing Tab */
 "settings.processing.include_subdirectories" = "扫描时包含子目录";

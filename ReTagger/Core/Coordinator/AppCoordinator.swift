@@ -813,33 +813,48 @@ class AppCoordinator: ObservableObject {
 
     // MARK: - 显示偏好
 
-    /// 按步数调整曲目表格文字大小（Cmd+/Cmd- 与设置页 Picker 共用）。
-    /// 已处于最大/最小档位时复用播放条的 HUD 组件做边界提示，而非静默无反应
+    /// 字号调整后短暂展示的标尺式 HUD，携带唯一 id 以便重复触发同一档位时也能重置淡出计时
+    struct FontScaleHUDState: Equatable {
+        let scale: MetadataTableFontScale
+        let id = UUID()
+    }
+
+    @Published private(set) var fontScaleHUD: FontScaleHUDState?
+    private var fontScaleHUDTask: Task<Void, Never>?
+
+    /// 按步数调整曲目表格文字大小（Cmd+/Cmd- 共用）。越界时钳位到当前档位，
+    /// 但仍会展示 HUD——标尺已经在最边上，无需额外文案提示
     func adjustMetadataTableFontScale(by steps: Int) {
         let allCases = MetadataTableFontScale.allCases
         guard let currentIndex = allCases.firstIndex(of: settings.metadataTableFontScale) else { return }
         let newIndex = min(max(currentIndex + steps, 0), allCases.count - 1)
 
-        guard newIndex != currentIndex else {
-            if steps > 0 {
-                playbackController.showHUD(message: localizationManager.string("hud.font_scale.at_max"), icon: "textformat.size.larger")
-            } else if steps < 0 {
-                playbackController.showHUD(message: localizationManager.string("hud.font_scale.at_min"), icon: "textformat.size.smaller")
-            }
-            return
+        if newIndex != currentIndex {
+            var newSettings = settings
+            newSettings.metadataTableFontScale = allCases[newIndex]
+            updateSettings(newSettings)
         }
-
-        var newSettings = settings
-        newSettings.metadataTableFontScale = allCases[newIndex]
-        updateSettings(newSettings)
+        showFontScaleHUD()
     }
 
     /// 恢复曲目表格文字大小为默认档位（对应 Cmd+0）
     func resetMetadataTableFontScale() {
-        guard settings.metadataTableFontScale != .medium else { return }
-        var newSettings = settings
-        newSettings.metadataTableFontScale = .medium
-        updateSettings(newSettings)
+        if settings.metadataTableFontScale != .medium {
+            var newSettings = settings
+            newSettings.metadataTableFontScale = .medium
+            updateSettings(newSettings)
+        }
+        showFontScaleHUD()
+    }
+
+    private func showFontScaleHUD() {
+        fontScaleHUD = FontScaleHUDState(scale: settings.metadataTableFontScale)
+        fontScaleHUDTask?.cancel()
+        fontScaleHUDTask = Task {
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            guard !Task.isCancelled else { return }
+            self.fontScaleHUD = nil
+        }
     }
 
     func loadMetadata(

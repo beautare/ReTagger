@@ -141,13 +141,7 @@ struct SettingsView: View {
                         Text(localizationManager.string("settings.general.font_scale"))
                             .foregroundColor(DesignSystem.Colors.textPrimary)
                         Spacer()
-                        Picker("", selection: binding($coordinator.settings.metadataTableFontScale)) {
-                            ForEach(MetadataTableFontScale.allCases) { scale in
-                                Text(localizationManager.string(scale.localizationKey)).tag(scale)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .frame(width: 160)
+                        fontScaleRuler
                     }
 
                     Divider()
@@ -524,6 +518,51 @@ struct SettingsView: View {
                 coordinator.setLanguage(newValue)
             }
         )
+    }
+
+    /// 曲目列表文字大小的标尺式选择器：柱条由矮到高排列，点击直接跳到对应档位
+    private var fontScaleRuler: some View {
+        let allCases = MetadataTableFontScale.allCases
+        let current = coordinator.settings.metadataTableFontScale
+
+        return HStack(spacing: 8) {
+            Text("A")
+                .font(.system(size: 10, weight: .regular))
+                .foregroundColor(.secondary)
+
+            HStack(alignment: .bottom, spacing: 5) {
+                ForEach(allCases) { step in
+                    Button {
+                        setFontScale(step)
+                    } label: {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(step == current ? Color.accentColor : Color(NSColor.separatorColor))
+                            .frame(width: 12, height: fontScaleBarHeight(for: step))
+                    }
+                    .buttonStyle(.plain)
+                    .help(localizationManager.string(step.localizationKey))
+                }
+            }
+            .frame(height: 22, alignment: .bottom)
+
+            Text("A")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.secondary)
+        }
+    }
+
+    private func fontScaleBarHeight(for step: MetadataTableFontScale) -> CGFloat {
+        let allCases = MetadataTableFontScale.allCases
+        let minHeight: CGFloat = 6
+        let maxHeight: CGFloat = 22
+        let fraction = CGFloat(step.rawValue) / CGFloat(allCases.count - 1)
+        return minHeight + fraction * (maxHeight - minHeight)
+    }
+
+    private func setFontScale(_ scale: MetadataTableFontScale) {
+        var newSettings = coordinator.settings
+        newSettings.metadataTableFontScale = scale
+        coordinator.updateSettings(newSettings)
     }
     
     private func binding<T>(_ source: Binding<T>) -> Binding<T> {

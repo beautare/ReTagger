@@ -1555,11 +1555,16 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         // 设置 delegate 处理键盘事件
         primaryLabel.delegate = self
         
+        // centerYAnchor 是唯一决定垂直位置的约束：contentStack 只取自身自然高度，
+        // 不再被 top/bottom 等式约束强行拉伸到行高。这样当同一行内其他列（如待确认修正的
+        // 双行对比）把行高撑高时，本列内容仍锚定在行的正中间，而不是依赖 NSStackView 的
+        // alignment 在被拉伸后自行居中——字号缩放导致的行高差异不会再影响垂直居中的准确性
         NSLayoutConstraint.activate([
             contentStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 2),
             contentStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -2),
-            contentStack.topAnchor.constraint(equalTo: topAnchor, constant: 4),
-            contentStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4)
+            contentStack.centerYAnchor.constraint(equalTo: centerYAnchor),
+            contentStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 4),
+            contentStack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4)
         ])
         
         textField = primaryLabel
