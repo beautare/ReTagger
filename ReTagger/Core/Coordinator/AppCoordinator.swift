@@ -427,10 +427,26 @@ class AppCoordinator: ObservableObject {
         }
         updateSettings(updatedSettings)
     }
-    
+
+    /// 单文件级工作区条目（用户直接添加音频文件而非文件夹时）需要随该文件自身的改名/移动同步更新路径。
+    /// 否则该条目在磁盘上的旧路径会“消失”，被 handleExternalDirectoryChange 误判为工作区目录被外部删除，
+    /// 进而把这个刚被应用自己写入、重命名成功的文件连同其所有关联数据整体移除
+    func syncWorkspaceDirectoryPath(from oldURL: URL, to newURL: URL) {
+        guard let index = workspaceDirectories.firstIndex(where: {
+            $0.standardizedFileURL.path == oldURL.standardizedFileURL.path
+        }) else { return }
+        workspaceDirectories[index] = newURL
+        saveWorkspaceState()
+    }
+
     private func handleExternalDirectoryChange(_ url: URL) {
         // Debounce external reloads a bit if there are bursts of changes
         Task { @MainActor in
+            // 应用自身正在写入/改名磁盘文件时，目录监听捕获到的正是这次自我写入产生的事件。
+            // 此时磁盘处于写入过程的瞬时状态（例如重命名途中的临时文件名），
+            // 若照常用这次扫描结果整表重建 audioFiles，会把正在处理的文件误判为外部删除。
+            // 写入操作结束后会主动重新触发一次本方法，因此这里可以安全跳过。
+            guard self.activeManagedFileOperations == 0 else { return }
             do {
                 // Check if the changed URL affects our workspace
                 let isIncluded = self.workspaceDirectories.contains { $0.isSameOrDescendant(of: url) || url.isSameOrDescendant(of: $0) }
@@ -876,6 +892,26 @@ class AppCoordinator: ObservableObject {
         metadataCacheService.invalidate(directory: directory)
     }
 
+    // MARK: - 托管写入期间抑制外部变更重扫描
+
+    private var activeManagedFileOperations = 0
+
+    /// 在对磁盘文件做写入/改名/移动等操作前调用，抑制目录监听触发的整表重建，
+    /// 避免把操作过程中的瞬时磁盘状态误判为外部删除
+    func beginManagedFileOperation() {
+        activeManagedFileOperations += 1
+    }
+
+    /// 操作结束后调用（无论成功或失败），并对受影响目录补做一次外部变更重扫描，
+    /// 以便真正的外部改动（与本次操作并发发生的）仍能被正确合并
+    func endManagedFileOperation(affecting directories: Set<URL> = []) {
+        activeManagedFileOperations = max(0, activeManagedFileOperations - 1)
+        guard activeManagedFileOperations == 0 else { return }
+        for directory in directories {
+            handleExternalDirectoryChange(directory)
+        }
+    }
+
     func setError(_ message: String) {
         errorMessage = message
         isLoading = false
@@ -994,6 +1030,9 @@ class AppCoordinator: ObservableObject {
             restoredMetadata.filePath.deletingLastPathComponent()
         ]
 
+        beginManagedFileOperation()
+        defer { endManagedFileOperation(affecting: affectedDirectories) }
+
         for directory in affectedDirectories {
             _ = activateSecurityScope(for: directory)
         }
@@ -1003,18 +1042,22 @@ class AppCoordinator: ObservableObject {
         let targetDirectory = targetURL.deletingLastPathComponent()
 
         if workingURL.deletingLastPathComponent() != targetDirectory {
-            workingURL = try await fileSystemService.moveFile(
+            let movedURL = try await fileSystemService.moveFile(
                 from: workingURL,
                 toDirectory: targetDirectory
             )
+            syncWorkspaceDirectoryPath(from: workingURL, to: movedURL)
+            workingURL = movedURL
             affectedDirectories.insert(workingURL.deletingLastPathComponent())
         }
 
         if workingURL.lastPathComponent != targetURL.lastPathComponent {
-            workingURL = try await fileSystemService.renameFile(
+            let renamedURL = try await fileSystemService.renameFile(
                 from: workingURL,
                 to: targetURL.lastPathComponent
             )
+            syncWorkspaceDirectoryPath(from: workingURL, to: renamedURL)
+            workingURL = renamedURL
             affectedDirectories.insert(workingURL.deletingLastPathComponent())
         }
 

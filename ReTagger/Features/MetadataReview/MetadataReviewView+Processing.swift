@@ -362,6 +362,11 @@ extension MetadataReviewView {
         let parentDir = currentURL.deletingLastPathComponent()
         var affectedDirectories: Set<URL> = [parentDir]
 
+        // 抑制目录监听在写入过程中把瞬时磁盘状态误判为外部删除，
+        // 写入结束后（无论成功或失败）对受影响目录补做一次外部变更重扫描
+        coordinator.beginManagedFileOperation()
+        defer { coordinator.endManagedFileOperation(affecting: affectedDirectories) }
+
         if !coordinator.activateSecurityScope(for: parentDir) {
             let message = localizationManager.string("permission.request_directory", arguments: parentDir.lastPathComponent)
             if let granted = await coordinator.fileSystemService.requestAccess(to: parentDir, message: message) {
@@ -414,12 +419,16 @@ extension MetadataReviewView {
         }
 
         let verificationAsset = AVURLAsset(url: currentURL)
-        let isPlayable = try await verificationAsset.load(.isPlayable)
-        if !isPlayable {
+        do {
+            let isPlayable = try await verificationAsset.load(.isPlayable)
+            guard isPlayable else {
+                throw ReTaggerError.metadataWriteError(currentURL)
+            }
+        } catch {
             if let backup = backupURL {
                 try await coordinator.fileSystemService.restoreBackup(from: backup, to: currentURL)
             }
-            throw ReTaggerError.metadataWriteError(currentURL)
+            throw error
         }
 
         if fields.contains(.fileName),
@@ -432,6 +441,7 @@ extension MetadataReviewView {
                     to: suggestedFileName
                 )
                 affectedDirectories.insert(currentURL.deletingLastPathComponent())
+                coordinator.syncWorkspaceDirectoryPath(from: updated.filePath, to: currentURL)
                 updated.filePath = currentURL
                 updated.fileName = currentURL.lastPathComponent
             } catch {
