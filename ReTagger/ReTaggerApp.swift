@@ -47,7 +47,7 @@ struct ReTaggerApp: App {
                 .overlay(alignment: .topTrailing) {
                     // 首启"开启自动更新？"授权气泡（参考 1.jpg / Ghostty），
                     // 后续检查、下载与安装由 Sparkle 标准界面接管
-                    UpdatePermissionPromptView(updater: sparkleUpdater)
+                    UpdatePermissionPromptView(updater: sparkleUpdater, localizationManager: localizationManager)
                         .padding(.top, DesignSystem.Spacing.xs)
                         .padding(.trailing, DesignSystem.Spacing.md)
                 }

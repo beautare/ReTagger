@@ -11,7 +11,11 @@ import SwiftUI
 
 struct UpdatePermissionPromptView: View {
     @ObservedObject var updater: SparkleUpdaterService
-    @EnvironmentObject var localizationManager: LocalizationManager
+    // 直接注入而非 @EnvironmentObject：本视图挂在 WindowGroup 根视图的 .overlay 上，
+    // macOS 的窗口状态恢复（NSPersistentUIRestorer，命中条件是本机曾运行过本应用）
+    // 会在窗口环境完全建立前提前对 overlay 子树求值一次 body 以采集 PreferenceKey，
+    // 此时环境对象尚未传播到位，@EnvironmentObject access 会直接 fatalError 崩溃退出
+    @ObservedObject var localizationManager: LocalizationManager
     @State private var showPopover = false
 
     var body: some View {
