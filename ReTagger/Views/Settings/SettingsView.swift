@@ -535,9 +535,14 @@ struct SettingsView: View {
                     Button {
                         setFontScale(step)
                     } label: {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(step == current ? Color.accentColor : Color(NSColor.separatorColor))
-                            .frame(width: 12, height: fontScaleBarHeight(for: step))
+                        VStack(spacing: 0) {
+                            Spacer(minLength: 0)
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(step == current ? Color.accentColor : Color(NSColor.separatorColor))
+                                .frame(width: 12, height: fontScaleBarHeight(for: step))
+                        }
+                        .frame(width: 12, height: 22, alignment: .bottom)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .help(localizationManager.string(step.localizationKey))

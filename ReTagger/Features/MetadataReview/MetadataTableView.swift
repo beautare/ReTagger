@@ -190,6 +190,9 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
     func reloadAllRows() {
         tableView.reloadData()
         adjustStatusColumnWidth()
+        // reloadData() 不会同步触发 automaticRowHeights 的布局与重绘，
+        // 快捷键触发的刷新不经过表格自身的事件追踪循环，视觉上会一直空白到下次滚动才刷新
+        tableView.layoutSubtreeIfNeeded()
     }
     
     override func loadView() {
