@@ -813,12 +813,21 @@ class AppCoordinator: ObservableObject {
 
     // MARK: - 显示偏好
 
-    /// 按步数调整曲目表格文字大小（Cmd+/Cmd- 与设置页 Picker 共用），越界静默钳位
+    /// 按步数调整曲目表格文字大小（Cmd+/Cmd- 与设置页 Picker 共用）。
+    /// 已处于最大/最小档位时复用播放条的 HUD 组件做边界提示，而非静默无反应
     func adjustMetadataTableFontScale(by steps: Int) {
         let allCases = MetadataTableFontScale.allCases
         guard let currentIndex = allCases.firstIndex(of: settings.metadataTableFontScale) else { return }
         let newIndex = min(max(currentIndex + steps, 0), allCases.count - 1)
-        guard newIndex != currentIndex else { return }
+
+        guard newIndex != currentIndex else {
+            if steps > 0 {
+                playbackController.showHUD(message: localizationManager.string("hud.font_scale.at_max"), icon: "textformat.size.larger")
+            } else if steps < 0 {
+                playbackController.showHUD(message: localizationManager.string("hud.font_scale.at_min"), icon: "textformat.size.smaller")
+            }
+            return
+        }
 
         var newSettings = settings
         newSettings.metadataTableFontScale = allCases[newIndex]

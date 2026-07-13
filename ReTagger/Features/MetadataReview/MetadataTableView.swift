@@ -1471,6 +1471,8 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
     
     // 编辑状态
     private var originalValue: String = ""
+    /// 进入编辑前的完整富文本（含颜色/字号/是否加粗），取消编辑时用于精确还原
+    private var originalAttributedValue: NSAttributedString?
     private var isInEditMode: Bool = false
     private var isSettingUpEdit: Bool = false  // 防止 controlTextDidEndEditing 过早触发
     var onEditCommit: ((String) -> Void)?
@@ -1660,9 +1662,10 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         isInEditMode = true
         isSettingUpEdit = true  // 防止 controlTextDidEndEditing 过早触发
         
-        // 保存原始值（使用 stringValue 获取纯文本）
+        // 保存原始值（纯文本 + 完整富文本，取消编辑时分别用于比较和还原）
         originalValue = primaryLabel.stringValue
-        
+        originalAttributedValue = primaryLabel.attributedStringValue
+
         // 隐藏 secondary 标签（如果有旧值显示）
         secondaryLabel.isHidden = true
         
@@ -1676,8 +1679,13 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         // 编辑模式使用橙黄色调 - 表示"正在修改"
         let editColor = NSColor.systemOrange
         primaryLabel.backgroundColor = editColor.withAlphaComponent(0.12)
-        // 沿用进入编辑前已显示的字号（跟随当前文字大小档位），仅去除可能的加粗样式
-        primaryLabel.font = .systemFont(ofSize: primaryLabel.font?.pointSize ?? NSFont.systemFontSize)
+        // 字号取自进入编辑前富文本里实际生效的字体（跟随当前文字大小档位），仅去除可能的加粗样式。
+        // 注意：NSTextField.font 不会随 attributedStringValue 同步更新，必须从富文本属性里读，
+        // 否则复用中的 cell 可能拿到过期/未缩放的默认字号
+        let displayedFontSize = (originalAttributedValue?.length ?? 0) > 0
+            ? (originalAttributedValue?.attribute(.font, at: 0, effectiveRange: nil) as? NSFont)?.pointSize
+            : nil
+        primaryLabel.font = .systemFont(ofSize: displayedFontSize ?? NSFont.systemFontSize)
         primaryLabel.textColor = .textColor
         
         // 启用滚动（允许输入）但不使用边框
@@ -1753,8 +1761,13 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         if commit && newValue != originalValue {
             onEditCommit?(newValue)
         } else {
-            // 取消：恢复原值
-            primaryLabel.stringValue = originalValue
+            // 取消：恢复完整原始富文本（颜色/字号/是否加粗），而非仅恢复纯文本，
+            // 否则会丢失缩放后的字号与 AI 建议行的高亮样式
+            if let originalAttributedValue {
+                primaryLabel.attributedStringValue = originalAttributedValue
+            } else {
+                primaryLabel.stringValue = originalValue
+            }
             onEditCancel?()
         }
         

@@ -103,6 +103,7 @@ enum MetadataTableFontScale: Int, Codable, CaseIterable, Identifiable {
     case medium = 2
     case large = 3
     case extraLarge = 4
+    case huge = 5
 
     var id: Int { rawValue }
 
@@ -114,6 +115,7 @@ enum MetadataTableFontScale: Int, Codable, CaseIterable, Identifiable {
         case .medium: return 0
         case .large: return 2
         case .extraLarge: return 4
+        case .huge: return 6
         }
     }
 
@@ -124,6 +126,7 @@ enum MetadataTableFontScale: Int, Codable, CaseIterable, Identifiable {
         case .medium: return "settings.display.font_scale.medium"
         case .large: return "settings.display.font_scale.large"
         case .extraLarge: return "settings.display.font_scale.extra_large"
+        case .huge: return "settings.display.font_scale.huge"
         }
     }
 }

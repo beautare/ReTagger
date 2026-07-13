@@ -424,6 +424,9 @@
 "settings.display.font_scale.medium" = "Medium (Default)";
 "settings.display.font_scale.large" = "Large";
 "settings.display.font_scale.extra_large" = "Extra Large";
+"settings.display.font_scale.huge" = "Huge";
+"hud.font_scale.at_max" = "Maximum Font Size Reached";
+"hud.font_scale.at_min" = "Minimum Font Size Reached";
 
 /* Settings Processing Tab */
 "settings.processing.include_subdirectories" = "Include subdirectories when scanning";
