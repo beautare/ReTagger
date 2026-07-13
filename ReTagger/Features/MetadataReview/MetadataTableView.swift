@@ -631,6 +631,7 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
                 metadata: file,
                 localizationManager: localizationManager,
                 isUndoable: isUndoable,
+                fontSize: scaledBodyFontSize,
                 onConfirm: { [weak self] in
                     guard let self, let current = self.files.first(where: { $0.id == fileID }) else { return }
                     self.onConfirmAction?(current)
@@ -1456,12 +1457,25 @@ fileprivate struct MetadataCellContent {
 }
 
 class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
-    private let stackView = NSStackView()
-    private let contentStack = NSStackView()  // 水平容器：编辑按钮 + 文本
     private let primaryLabel = MetadataTableCellView.makeLabel()
     private let secondaryLabel = MetadataTableCellView.makeLabel()
     private let editButton = NSButton()
     private let editButtonBackground = NSView()  // hover 高亮背景
+
+    /// primaryLabel/secondaryLabel 两行文本之间的垂直间距
+    private static let lineSpacing: CGFloat = 2
+
+    // 以下均为直接锚定在 primaryLabel/secondaryLabel 自身上的约束（不经过任何 NSStackView）。
+    // NSTableView 的行内容重排布对被约束拉伸的 NSStackView 有未文档化的底部对齐副作用——
+    // 同样的 GTE/LTE + centerY 约束加在 NSStackView 上会失效并整体贴底，
+    // 直接加在叶子控件（NSTextField/NSView）上则能正确居中，已用独立测试反复验证过。
+    private var primaryCenterY: NSLayoutConstraint!
+    private var primaryLeadingNoButton: NSLayoutConstraint!
+    private var primaryLeadingWithButton: NSLayoutConstraint!
+    private var secondaryTopConstraint: NSLayoutConstraint!
+    private var secondaryLeadingConstraint: NSLayoutConstraint!
+    private var secondaryTrailingConstraint: NSLayoutConstraint!
+    private var secondaryBottomConstraint: NSLayoutConstraint!
 
     /// 编辑按钮的提示文案（由控制器注入本地化字符串）
     var editButtonToolTip: String? {
@@ -1516,7 +1530,8 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         editButtonBackground.addSubview(editButton)
         editButtonBackground.setContentHuggingPriority(.required, for: .horizontal)
         editButtonBackground.setContentCompressionResistancePriority(.required, for: .horizontal)
-        
+        addSubview(editButtonBackground)
+
         // Hover 效果
         let trackingArea = NSTrackingArea(
             rect: .zero,
@@ -1534,42 +1549,47 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
             editButton.heightAnchor.constraint(equalToConstant: 14)
         ])
         
-        // 文本垂直排列
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.orientation = .vertical
-        stackView.alignment = .leading
-        stackView.spacing = 2
-        stackView.addArrangedSubview(primaryLabel)
-        stackView.addArrangedSubview(secondaryLabel)
+        addSubview(primaryLabel)
+        addSubview(secondaryLabel)
         secondaryLabel.isHidden = true
-        
-        // 水平排列：编辑按钮 + 文本
-        contentStack.translatesAutoresizingMaskIntoConstraints = false
-        contentStack.orientation = .horizontal
-        contentStack.alignment = .centerY
-        contentStack.spacing = 2
-        contentStack.addArrangedSubview(editButtonBackground)
-        contentStack.addArrangedSubview(stackView)
-        addSubview(contentStack)
-        
+
         // 设置 delegate 处理键盘事件
         primaryLabel.delegate = self
-        
-        // centerYAnchor 是唯一决定垂直位置的约束：contentStack 只取自身自然高度，
-        // 不再被 top/bottom 等式约束强行拉伸到行高。这样当同一行内其他列（如待确认修正的
-        // 双行对比）把行高撑高时，本列内容仍锚定在行的正中间，而不是依赖 NSStackView 的
-        // alignment 在被拉伸后自行居中——字号缩放导致的行高差异不会再影响垂直居中的准确性
+
+        // primaryLabel/secondaryLabel 直接锚定在 self 上，centerY 决定垂直位置，
+        // top/bottom 仅作为越界保护。双行对比时 primaryCenterY 的 constant 会上移半个
+        // secondaryLabel 行高，使 [primary+secondary] 整体仍以 self 的正中为中心。
+        primaryCenterY = primaryLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
+        primaryLeadingNoButton = primaryLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 2)
+        primaryLeadingWithButton = primaryLabel.leadingAnchor.constraint(equalTo: editButtonBackground.trailingAnchor, constant: 2)
+        secondaryTopConstraint = secondaryLabel.topAnchor.constraint(equalTo: primaryLabel.bottomAnchor, constant: Self.lineSpacing)
+        secondaryLeadingConstraint = secondaryLabel.leadingAnchor.constraint(equalTo: primaryLabel.leadingAnchor)
+        secondaryTrailingConstraint = secondaryLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -2)
+        secondaryBottomConstraint = secondaryLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4)
+
         NSLayoutConstraint.activate([
-            contentStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 2),
-            contentStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -2),
-            contentStack.centerYAnchor.constraint(equalTo: centerYAnchor),
-            contentStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 4),
-            contentStack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4)
+            editButtonBackground.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 2),
+            editButtonBackground.centerYAnchor.constraint(equalTo: centerYAnchor),
+            primaryCenterY,
+            primaryLeadingNoButton,
+            primaryLabel.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 4),
+            primaryLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4),
+            primaryLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -2)
         ])
-        
+
         textField = primaryLabel
     }
-    
+
+    // TEMP DEBUG - 用于定位垂直居中问题，确认后会移除
+    private static var debugLogCount = 0
+    override func layout() {
+        super.layout()
+        if MetadataTableCellView.debugLogCount < 40 {
+            MetadataTableCellView.debugLogCount += 1
+            print("[CELL-DEBUG] col=\(identifier?.rawValue ?? "?") bounds=\(bounds) primaryFrame=\(primaryLabel.frame) primaryHidden=\(primaryLabel.isHidden) secondaryHidden=\(secondaryLabel.isHidden) secondaryFrame=\(secondaryLabel.frame) editBtnHidden=\(editButtonBackground.isHidden) editBtnFrame=\(editButtonBackground.frame) centerYConst=\(primaryCenterY.constant) leadNoBtnActive=\(primaryLeadingNoButton.isActive) leadWithBtnActive=\(primaryLeadingWithButton.isActive)")
+        }
+    }
+
     @objc private func editButtonTapped() {
         onEditButtonClicked?(self)
     }
@@ -1639,23 +1659,39 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
     fileprivate func configure(with content: MetadataCellContent) {
         // 如果正在编辑，不更新内容
         guard !isInEditMode else { return }
-        
+
         primaryLabel.attributedStringValue = content.primary
         primaryLabel.toolTip = content.toolTip
-        
+
         if let secondary = content.secondary {
             secondaryLabel.isHidden = false
             secondaryLabel.attributedStringValue = secondary
             secondaryLabel.toolTip = content.toolTip
+            secondaryTopConstraint.isActive = true
+            secondaryLeadingConstraint.isActive = true
+            secondaryTrailingConstraint.isActive = true
+            secondaryBottomConstraint.isActive = true
+            // primaryLabel 上移半个 secondaryLabel 行高，使双行整体仍居中于 self
+            let secondaryFont = (secondary.length > 0 ? secondary.attribute(.font, at: 0, effectiveRange: nil) as? NSFont : nil) ?? NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+            let secondaryLineHeight = ceil(secondaryFont.ascender - secondaryFont.descender + secondaryFont.leading)
+            primaryCenterY.constant = -(secondaryLineHeight + Self.lineSpacing) / 2
         } else {
             secondaryLabel.isHidden = true
             secondaryLabel.stringValue = ""
             secondaryLabel.toolTip = nil
+            secondaryTopConstraint.isActive = false
+            secondaryLeadingConstraint.isActive = false
+            secondaryTrailingConstraint.isActive = false
+            secondaryBottomConstraint.isActive = false
+            primaryCenterY.constant = 0
         }
-        
-        // 根据是否可编辑控制铅笔图标容器
-        editButtonBackground.isHidden = !content.isEditable
-        
+
+        // 根据是否可编辑控制铅笔图标容器，并联动文本的前导约束
+        let isEditable = content.isEditable
+        editButtonBackground.isHidden = !isEditable
+        primaryLeadingWithButton.isActive = isEditable
+        primaryLeadingNoButton.isActive = !isEditable
+
         needsLayout = true
     }
     
@@ -1671,9 +1707,14 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         originalValue = primaryLabel.stringValue
         originalAttributedValue = primaryLabel.attributedStringValue
 
-        // 隐藏 secondary 标签（如果有旧值显示）
+        // 隐藏 secondary 标签（如果有旧值显示），编辑状态下始终按单行居中
         secondaryLabel.isHidden = true
-        
+        secondaryTopConstraint.isActive = false
+        secondaryLeadingConstraint.isActive = false
+        secondaryTrailingConstraint.isActive = false
+        secondaryBottomConstraint.isActive = false
+        primaryCenterY.constant = 0
+
         // 设置为可编辑状态 - 保持简洁外观
         primaryLabel.isEditable = true
         primaryLabel.isSelectable = true
@@ -1938,43 +1979,43 @@ class MetadataStatusCellView: NSTableCellView {
         ])
     }
     
-    func configure(metadata: AudioMetadata, localizationManager: LocalizationManager?, isUndoable: Bool, onConfirm: @escaping () -> Void, onDiscard: @escaping () -> Void, onUndo: @escaping () -> Void) {
+    func configure(metadata: AudioMetadata, localizationManager: LocalizationManager?, isUndoable: Bool, fontSize: CGFloat, onConfirm: @escaping () -> Void, onDiscard: @escaping () -> Void, onUndo: @escaping () -> Void) {
         self.onConfirm = onConfirm
         self.onDiscard = onDiscard
         self.onUndo = onUndo
-        
+
         let loc = localizationManager
-        
+
         // Reset all state first
         statusInfoStack.isHidden = false
         statusIcon.isHidden = false
         statusLabel.isHidden = false
         actionButton.isHidden = true
         discardButton.isHidden = true
-        
+
         // Default: Horizontal layout
         stackView.orientation = .horizontal
         stackView.alignment = .centerY
         stackView.spacing = 6
-        
+
         containerView.layer?.backgroundColor = NSColor.clear.cgColor
         containerView.layer?.borderWidth = 0
         containerView.layer?.borderColor = nil
-        
+
         switch metadata.processingState {
         case .pending:
             statusIcon.image = NSImage(systemSymbolName: "circle", accessibilityDescription: nil)
             statusIcon.contentTintColor = .tertiaryLabelColor
             statusLabel.stringValue = loc?.string("state.pending") ?? "未处理"
             statusLabel.textColor = .tertiaryLabelColor
-            statusLabel.font = .systemFont(ofSize: 12)
-            
+            statusLabel.font = .systemFont(ofSize: fontSize)
+
         case .processing:
             statusIcon.image = NSImage(systemSymbolName: "hourglass", accessibilityDescription: nil)
             statusIcon.contentTintColor = .systemBlue
             statusLabel.stringValue = loc?.string("state.processing") ?? "处理中"
             statusLabel.textColor = .systemBlue
-            statusLabel.font = .systemFont(ofSize: 12)
+            statusLabel.font = .systemFont(ofSize: fontSize)
             
         case .awaitingConfirmation:
             // Style: Blue Pill - Horizontal Layout
@@ -2009,7 +2050,7 @@ class MetadataStatusCellView: NSTableCellView {
             
             statusLabel.stringValue = loc?.string("state.completed") ?? "已完成"
             statusLabel.textColor = .systemGreen
-            statusLabel.font = .systemFont(ofSize: 12, weight: .medium)
+            statusLabel.font = .systemFont(ofSize: fontSize, weight: .medium)
             
             if isUndoable {
                 // Vertical Layout: [Status Info]
@@ -2035,14 +2076,14 @@ class MetadataStatusCellView: NSTableCellView {
             
             statusLabel.stringValue = loc?.string("state.failed") ?? "失败"
             statusLabel.textColor = .systemRed
-            statusLabel.font = .systemFont(ofSize: 12)
-            
+            statusLabel.font = .systemFont(ofSize: fontSize)
+
         case .userModified:
             statusIcon.image = NSImage(systemSymbolName: "pencil.circle", accessibilityDescription: nil)
             statusIcon.contentTintColor = .secondaryLabelColor
             statusLabel.stringValue = loc?.string("state.user_modified") ?? "已修改"
             statusLabel.textColor = .secondaryLabelColor
-            statusLabel.font = .systemFont(ofSize: 12)
+            statusLabel.font = .systemFont(ofSize: fontSize)
         }
         
         // Force layout update to ensure correct height calculation
