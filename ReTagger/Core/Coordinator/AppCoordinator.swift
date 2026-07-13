@@ -811,6 +811,28 @@ class AppCoordinator: ObservableObject {
         }
     }
 
+    // MARK: - 显示偏好
+
+    /// 按步数调整曲目表格文字大小（Cmd+/Cmd- 与设置页 Picker 共用），越界静默钳位
+    func adjustMetadataTableFontScale(by steps: Int) {
+        let allCases = MetadataTableFontScale.allCases
+        guard let currentIndex = allCases.firstIndex(of: settings.metadataTableFontScale) else { return }
+        let newIndex = min(max(currentIndex + steps, 0), allCases.count - 1)
+        guard newIndex != currentIndex else { return }
+
+        var newSettings = settings
+        newSettings.metadataTableFontScale = allCases[newIndex]
+        updateSettings(newSettings)
+    }
+
+    /// 恢复曲目表格文字大小为默认档位（对应 Cmd+0）
+    func resetMetadataTableFontScale() {
+        guard settings.metadataTableFontScale != .medium else { return }
+        var newSettings = settings
+        newSettings.metadataTableFontScale = .medium
+        updateSettings(newSettings)
+    }
+
     func loadMetadata(
         for directory: URL,
         includeSubdirectories: Bool,

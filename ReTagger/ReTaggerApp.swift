@@ -117,6 +117,28 @@ struct ReTaggerApp: App {
                 .disabled(updateService.updateStatus == .checking)
                 #endif
             }
+            CommandGroup(after: .toolbar) {
+                Button(action: {
+                    coordinator.adjustMetadataTableFontScale(by: 1)
+                }) {
+                    Label(localizationManager.string("menu.font_size.increase"), systemImage: "textformat.size.larger")
+                }
+                .keyboardShortcut("+", modifiers: .command)
+
+                Button(action: {
+                    coordinator.adjustMetadataTableFontScale(by: -1)
+                }) {
+                    Label(localizationManager.string("menu.font_size.decrease"), systemImage: "textformat.size.smaller")
+                }
+                .keyboardShortcut("-", modifiers: .command)
+
+                Button(action: {
+                    coordinator.resetMetadataTableFontScale()
+                }) {
+                    Label(localizationManager.string("menu.font_size.reset"), systemImage: "textformat.size")
+                }
+                .keyboardShortcut("0", modifiers: .command)
+            }
         }
     }
 }

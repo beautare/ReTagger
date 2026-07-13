@@ -96,6 +96,38 @@ enum UpdateCheckInterval: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+/// 曲目表格文字大小档位（Cmd+/Cmd-/Cmd0 与设置页共用同一偏好）
+enum MetadataTableFontScale: Int, Codable, CaseIterable, Identifiable {
+    case extraSmall = 0
+    case small = 1
+    case medium = 2
+    case large = 3
+    case extraLarge = 4
+
+    var id: Int { rawValue }
+
+    /// 相对系统默认字号的点数偏移，应用于表格正文字体
+    var pointDelta: CGFloat {
+        switch self {
+        case .extraSmall: return -2
+        case .small: return -1
+        case .medium: return 0
+        case .large: return 2
+        case .extraLarge: return 4
+        }
+    }
+
+    var localizationKey: String {
+        switch self {
+        case .extraSmall: return "settings.display.font_scale.extra_small"
+        case .small: return "settings.display.font_scale.small"
+        case .medium: return "settings.display.font_scale.medium"
+        case .large: return "settings.display.font_scale.large"
+        case .extraLarge: return "settings.display.font_scale.extra_large"
+        }
+    }
+}
+
 /// 表格列定义
 enum MetadataColumn: String, Codable, CaseIterable, Identifiable {
     // 必须展示的列（最小集合）
@@ -442,6 +474,8 @@ struct AppSettings: Codable {
     var lastPlayingTrackPath: String? = nil
     /// 上次打开设置界面时选中的 Tab
     var selectedSettingsTab: Int? = 0
+    /// 曲目表格文字大小档位（Cmd+/Cmd-/Cmd0 与设置页共用）
+    var metadataTableFontScale: MetadataTableFontScale = .medium
 
     // MARK: - 火焰/频谱效果配置
 

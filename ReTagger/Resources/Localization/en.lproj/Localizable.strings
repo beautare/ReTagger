@@ -415,7 +415,15 @@
 
 /* Settings General Tab */
 "settings.general.language" = "Interface Language:";
+"settings.general.font_scale" = "Track List Text Size:";
 "settings.general.restore_directory" = "Restore last directory on launch";
+
+/* Settings Display: Font Scale Steps */
+"settings.display.font_scale.extra_small" = "Extra Small";
+"settings.display.font_scale.small" = "Small";
+"settings.display.font_scale.medium" = "Medium (Default)";
+"settings.display.font_scale.large" = "Large";
+"settings.display.font_scale.extra_large" = "Extra Large";
 
 /* Settings Processing Tab */
 "settings.processing.include_subdirectories" = "Include subdirectories when scanning";
@@ -459,6 +467,9 @@
 
 /* Menu Commands */
 "menu.about" = "About ReTagger";
+"menu.font_size.increase" = "Increase Font Size";
+"menu.font_size.decrease" = "Decrease Font Size";
+"menu.font_size.reset" = "Reset Font Size";
 
 /* Settings Merged Tabs & Groups */
 "settings.tab.general_update" = "General & Updates";

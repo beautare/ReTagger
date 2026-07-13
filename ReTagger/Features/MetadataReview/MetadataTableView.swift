@@ -38,7 +38,10 @@ struct MetadataTableView: NSViewControllerRepresentable {
     
     /// 当前正在播放的曲目 ID，用于行视觉高亮
     var currentPlayingTrackID: AudioMetadata.ID?
-    
+
+    /// 表格正文文字大小档位（Cmd+/Cmd-/Cmd0 与设置页共用）
+    var fontScale: MetadataTableFontScale = .medium
+
     enum MenuAction {
         case revealInFinder
         case copyPath
@@ -63,18 +66,25 @@ struct MetadataTableView: NSViewControllerRepresentable {
         controller.onEditAction = onEditAction
         controller.onDropFiles = onDropFiles
         controller.currentSearchText = searchText
+        controller.fontScale = fontScale
         return controller
     }
-    
+
     func updateNSViewController(_ nsViewController: MetadataTableViewController, context: Context) {
         // Update localization manager
         nsViewController.localizationManager = localizationManager
-        
+
         // Explicitly check if language changed to force column update
         if nsViewController.currentLanguage != localizationManager.language {
             nsViewController.updateLanguage(localizationManager.language)
         }
-        
+
+        // 文字大小档位变化时强制整表重刷，确保行高随字号重新计算
+        if nsViewController.fontScale != fontScale {
+            nsViewController.fontScale = fontScale
+            nsViewController.reloadAllRows()
+        }
+
         // Update closures in case they capture new state
         nsViewController.onConfirmAction = onConfirmAction
         nsViewController.onDiscardAction = onDiscardAction
@@ -135,6 +145,7 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
     
     var localizationManager: LocalizationManager?
     var currentLanguage: AppLanguage?
+    var fontScale: MetadataTableFontScale = .medium
 
     var files: [AudioMetadata] = []
     var selection: Set<AudioMetadata.ID> = []
@@ -173,6 +184,12 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
     func updateLanguage(_ newLanguage: AppLanguage) {
         self.currentLanguage = newLanguage
         updateColumns()
+    }
+
+    /// 字号档位变化后整表重刷：usesAutomaticRowHeights 会据此重新计算每行高度
+    func reloadAllRows() {
+        tableView.reloadData()
+        adjustStatusColumnWidth()
     }
     
     override func loadView() {
@@ -999,7 +1016,7 @@ private extension MetadataTableViewController {
         else {
             let missingOriginal = trimmedOriginal?.isEmpty ?? true
             let textColor: NSColor = missingOriginal ? .systemRed : preferredColor
-            let textFont: NSFont = missingOriginal ? NSFont.systemFont(ofSize: NSFont.systemFontSize) : preferredFont
+            let textFont: NSFont = missingOriginal ? NSFont.systemFont(ofSize: scaledBodyFontSize) : preferredFont
             let attributes: [NSAttributedString.Key: Any] = [
                 .foregroundColor: textColor,
                 .font: textFont
@@ -1018,7 +1035,7 @@ private extension MetadataTableViewController {
         ]
         let oldAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: NSColor.secondaryLabelColor,
-            .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
+            .font: NSFont.systemFont(ofSize: scaledSecondaryFontSize),
             .strikethroughStyle: NSUnderlineStyle.single.rawValue
         ]
         let tooltipComponents = [correctedText, trimmedOriginal ?? ""].filter { !$0.isEmpty }
@@ -1046,11 +1063,21 @@ private extension MetadataTableViewController {
         )
     }
     
+    /// 表格正文字号：系统默认字号 + 当前档位偏移
+    var scaledBodyFontSize: CGFloat {
+        NSFont.systemFontSize + fontScale.pointDelta
+    }
+
+    /// 表格次要文字字号（已弃用值删除线等）：小号字号 + 当前档位偏移
+    var scaledSecondaryFontSize: CGFloat {
+        NSFont.smallSystemFontSize + fontScale.pointDelta
+    }
+
     func baseTextStyle(for file: AudioMetadata) -> (NSColor, NSFont) {
         if file.processingState == .awaitingConfirmation {
-            return (.systemBlue, .boldSystemFont(ofSize: NSFont.systemFontSize))
+            return (.systemBlue, .boldSystemFont(ofSize: scaledBodyFontSize))
         } else {
-            return (.labelColor, .systemFont(ofSize: NSFont.systemFontSize))
+            return (.labelColor, .systemFont(ofSize: scaledBodyFontSize))
         }
     }
     
@@ -1649,7 +1676,8 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         // 编辑模式使用橙黄色调 - 表示"正在修改"
         let editColor = NSColor.systemOrange
         primaryLabel.backgroundColor = editColor.withAlphaComponent(0.12)
-        primaryLabel.font = .systemFont(ofSize: NSFont.systemFontSize)
+        // 沿用进入编辑前已显示的字号（跟随当前文字大小档位），仅去除可能的加粗样式
+        primaryLabel.font = .systemFont(ofSize: primaryLabel.font?.pointSize ?? NSFont.systemFontSize)
         primaryLabel.textColor = .textColor
         
         // 启用滚动（允许输入）但不使用边框

@@ -133,10 +133,26 @@ struct SettingsView: View {
                         .pickerStyle(.menu)
                         .frame(width: 160)
                     }
-                    
+
                     Divider()
                         .padding(.vertical, 2)
-                    
+
+                    HStack {
+                        Text(localizationManager.string("settings.general.font_scale"))
+                            .foregroundColor(DesignSystem.Colors.textPrimary)
+                        Spacer()
+                        Picker("", selection: binding($coordinator.settings.metadataTableFontScale)) {
+                            ForEach(MetadataTableFontScale.allCases) { scale in
+                                Text(localizationManager.string(scale.localizationKey)).tag(scale)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 160)
+                    }
+
+                    Divider()
+                        .padding(.vertical, 2)
+
                     Toggle(localizationManager.string("settings.general.restore_directory"), isOn: binding($coordinator.settings.restoreDirectoryOnLaunch))
                 }
                 

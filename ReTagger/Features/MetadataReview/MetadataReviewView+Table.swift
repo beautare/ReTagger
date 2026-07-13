@@ -224,7 +224,8 @@ extension MetadataReviewView {
                     await coordinator.addDroppedFiles(urls)
                 }
             },
-            currentPlayingTrackID: playbackController.state.currentTrackID
+            currentPlayingTrackID: playbackController.state.currentTrackID,
+            fontScale: coordinator.settings.metadataTableFontScale
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .simultaneousGesture(

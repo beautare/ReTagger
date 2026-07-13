@@ -416,7 +416,15 @@
 
 /* Settings General Tab */
 "settings.general.language" = "界面语言：";
+"settings.general.font_scale" = "曲目列表文字大小：";
 "settings.general.restore_directory" = "启动时恢复上次目录";
+
+/* Settings Display: Font Scale Steps */
+"settings.display.font_scale.extra_small" = "极小";
+"settings.display.font_scale.small" = "小";
+"settings.display.font_scale.medium" = "中（默认）";
+"settings.display.font_scale.large" = "大";
+"settings.display.font_scale.extra_large" = "极大";
 
 /* Settings Processing Tab */
 "settings.processing.include_subdirectories" = "扫描时包含子目录";
@@ -460,6 +468,9 @@
 
 /* Menu Commands */
 "menu.about" = "关于 ReTagger";
+"menu.font_size.increase" = "放大文字";
+"menu.font_size.decrease" = "缩小文字";
+"menu.font_size.reset" = "恢复默认文字大小";
 
 /* Settings Merged Tabs & Groups */
 "settings.tab.general_update" = "通用与更新";
