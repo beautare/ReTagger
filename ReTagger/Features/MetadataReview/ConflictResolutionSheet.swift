@@ -659,21 +659,25 @@ struct FileRowView: View {
             return
         }
         
-        // 1. 内存中查重（大小写不敏感）
+        // 1. 内存中查重。用与 detectConflicts/recalculateConflicts 相同的归一化键
+        // （NFD + 小写），而非 localizedCaseInsensitiveCompare——后者的大小写折叠
+        // 会随系统区域设置变化（如土耳其语 I/ı），三处判定标准必须完全一致，
+        // 否则可能出现"这里判无冲突，下一次重算又判有冲突"的往复
+        let trimmedKey = ConflictGroup.normalizedFileNameKey(trimmed)
         let dup = allFiles.contains { o in
             guard o.id != file.id else { return false }
             let n = o.processingState == .awaitingConfirmation ? (o.suggestedFileName ?? o.fileName) : o.fileName
-            return n.localizedCaseInsensitiveCompare(trimmed) == .orderedSame
+            return ConflictGroup.normalizedFileNameKey(n) == trimmedKey
         }
         if dup {
             fileNameError = localizationManager.string("conflict.error.conflict_in_group")
             return
         }
-        
+
         // 2. 物理磁盘上查重（仅在修改了名字的前提下）。
         // 磁盘上被占用即拒绝，不做“已跟踪文件”豁免：底层 renameFile 遇到占用
         // 会静默追加“_1”后缀，在解决同名的面板里绝不能落盘一个用户没确认过的名字
-        if trimmed.localizedCaseInsensitiveCompare(file.fileName) != .orderedSame {
+        if trimmedKey != ConflictGroup.normalizedFileNameKey(file.fileName) {
             let targetURL = file.filePath.deletingLastPathComponent().appendingPathComponent(trimmed)
             if FileManager.default.fileExists(atPath: targetURL.path) {
                 fileNameError = localizationManager.string("conflict.error.conflict_in_group")
