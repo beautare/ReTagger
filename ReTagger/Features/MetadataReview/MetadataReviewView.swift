@@ -53,7 +53,6 @@ struct MetadataReviewView: View {
     @State var isShowingBackupAccessDeniedAlert = false
     @State var isShowingConflictResolution = false
     @State var pendingConflicts: [ConflictGroup] = []
-    @State var pendingConflictWriteSelection: Set<AudioMetadata.ID> = []
     /// 表格与详情面板是否使用左右分栏布局（由宽度断点驱动，带动画切换）
     @State var isInlineLayout: Bool = true
     /// 右侧详情面板的绝对宽度，在 inline ↔ stacked 布局切换时保持记忆
@@ -508,7 +507,6 @@ struct MetadataReviewView: View {
             onClose: {
                 isShowingConflictResolution = false
                 pendingConflicts = []
-                pendingConflictWriteSelection = []
             }
         )
     }
@@ -605,6 +603,7 @@ struct ConflictResolutionWindowModifier: ViewModifier {
 
     @EnvironmentObject private var coordinator: AppCoordinator
     @State private var windowController: NSWindowController?
+    @State private var closeObserverToken: NSObjectProtocol?
 
     func body(content: Content) -> some View {
         content
@@ -675,9 +674,10 @@ struct ConflictResolutionWindowModifier: ViewModifier {
         controller.showWindow(nil)
         
         self.windowController = controller
-        
-        // 监听窗口关闭通知
-        NotificationCenter.default.addObserver(
+
+        // 监听窗口关闭通知；token 必须在触发后移除，
+        // 否则反复开关冲突窗口会在 NotificationCenter 里累积观察者
+        closeObserverToken = NotificationCenter.default.addObserver(
             forName: NSWindow.willCloseNotification,
             object: newWindow,
             queue: .main
@@ -687,10 +687,19 @@ struct ConflictResolutionWindowModifier: ViewModifier {
                 onClose()
             }
             self.windowController = nil
+            removeCloseObserver()
+        }
+    }
+
+    private func removeCloseObserver() {
+        if let token = closeObserverToken {
+            NotificationCenter.default.removeObserver(token)
+            closeObserverToken = nil
         }
     }
 
     private func dismissWindow() {
+        // close() 会同步触发 willClose 观察者，由其完成 token 清理
         windowController?.window?.close()
         windowController = nil
     }

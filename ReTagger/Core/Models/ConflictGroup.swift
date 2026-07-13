@@ -44,35 +44,12 @@ struct ConflictGroup: Identifiable {
             return "同文件名"
         }
     }
-}
 
-/// 用户对冲突组中单个文件的操作
-enum ConflictAction: Equatable {
-    /// 保持不变，正常写入（保留此文件）
-    case keep
-    /// 移至废纸篓
-    case remove
-    /// 手动修改建议的文件名
-    case rename(newFileName: String)
-}
-
-/// 冲突解决结果
-struct ConflictResolution {
-    /// 对每个文件 ID 的操作决定
-    var actions: [AudioMetadata.ID: ConflictAction] = [:]
-
-    /// 是否已对所有冲突组做出处理
-    var isFullyResolved: Bool {
-        !actions.isEmpty
+    /// 文件名冲突键归一化：APFS 默认大小写不敏感，外部文件又常见 NFC/NFD 混杂，
+    /// 检测与查重必须统一按 NFD + 小写比较，否则漏检的冲突会在改名时被静默加后缀
+    static func normalizedFileNameKey(_ name: String) -> String {
+        name.decomposedStringWithCanonicalMapping.lowercased()
     }
-}
-
-/// 整个冲突解决会话的结果
-enum ConflictSessionResult {
-    /// 用户取消了整个操作
-    case cancelled
-    /// 用户已处理完所有冲突，返回最终解决方案
-    case resolved(ConflictResolution)
 }
 
 // MARK: - MatchKey 扩展

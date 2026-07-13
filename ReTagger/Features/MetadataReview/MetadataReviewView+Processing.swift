@@ -80,12 +80,16 @@ extension MetadataReviewView {
             return
         }
 
-        // 冲突检测：单条确认时也需要检查是否与列表中其他文件冲突
-        let detection = detectConflicts(in: [metadata])
+        // 冲突检测：单条确认时也需要检查是否与列表中其他文件冲突。
+        // 检测基于“实际将写入”的形态——未勾选字段的建议不会落盘，不参与判定
+        var effectiveMetadata = metadata
+        for field in availableFields.subtracting(selectedFields) {
+            field.discardSuggestion(on: &effectiveMetadata)
+        }
+        let detection = detectConflicts(in: [effectiveMetadata])
         registerDiscoveredDiskFiles(detection.discoveredDiskFiles)
         if !detection.groups.isEmpty {
             pendingConflicts = detection.groups
-            pendingConflictWriteSelection = [metadata.id]
             isShowingConflictResolution = true
             return
         }
@@ -216,14 +220,29 @@ extension MetadataReviewView {
             return
         }
 
-        // 冲突检测：批量确认时检查所有待写入文件之间的冲突
-        let detection = detectConflicts(in: targets)
+        // 冲突检测：批量确认时检查所有待写入文件之间的冲突。
+        // 检测基于“实际将写入”的形态——剔除未勾选字段的建议后再判定
+        let effectiveTargets = targets.map { metadata -> AudioMetadata in
+            let available = Set(MetadataField.relevantFields(for: metadata))
+            let selected = (fieldSelections[metadata.id] ?? available).intersection(available)
+            var effective = metadata
+            for field in available.subtracting(selected) {
+                field.discardSuggestion(on: &effective)
+            }
+            return effective
+        }
+
+        let detection = detectConflicts(in: effectiveTargets)
         registerDiscoveredDiskFiles(detection.discoveredDiskFiles)
+
+        // 冲突文件交给处理窗口，其余文件继续本次批量写入，不再整批中断
+        var writeTargets = targets
         if !detection.groups.isEmpty {
             pendingConflicts = detection.groups
-            pendingConflictWriteSelection = selection
             isShowingConflictResolution = true
-            return
+            let conflictedIDs = Set(detection.groups.flatMap(\.memberIDs))
+            writeTargets = targets.filter { !conflictedIDs.contains($0.id) }
+            guard !writeTargets.isEmpty else { return }
         }
 
         isApplyingCorrections = true
@@ -242,9 +261,9 @@ extension MetadataReviewView {
 
             var successes: Int = 0
             var failures: [(AudioMetadata, Error)] = []
-            let totalCount = Double(targets.count)
+            let totalCount = Double(writeTargets.count)
 
-            for (index, metadata) in targets.enumerated() {
+            for (index, metadata) in writeTargets.enumerated() {
                 let availableFields = Set(MetadataField.relevantFields(for: metadata))
                 let selectedFields = (fieldSelections[metadata.id] ?? availableFields)
                     .intersection(availableFields)
@@ -830,10 +849,15 @@ extension MetadataReviewView {
         in targets: [AudioMetadata]
     ) -> (groups: [ConflictGroup], discoveredDiskFiles: [AudioMetadata]) {
         let targetIDs = Set(targets.map(\.id))
+        // 目标文件用调用方传入的“实际将写入”副本参与判定，
+        // 而非 currentFiles 里含全部建议的原始数据
+        let targetsByID = Dictionary(uniqueKeysWithValues: targets.map { ($0.id, $0) })
 
         // ── 维度 1：逻辑重复 — finalTitle + finalArtist ──
         // 仅在 .awaitingConfirmation 文件之间检测（它们即将被修正）
-        let allConfirmable = currentFiles.filter { $0.processingState == .awaitingConfirmation }
+        let allConfirmable = currentFiles
+            .map { targetsByID[$0.id] ?? $0 }
+            .filter { $0.processingState == .awaitingConfirmation }
         var titleArtistMap: [String: [AudioMetadata.ID]] = [:]
         for metadata in allConfirmable {
             let title = (metadata.finalTitle ?? "")
@@ -883,15 +907,21 @@ extension MetadataReviewView {
         // 检测范围为 currentFiles 全列表加上磁盘上新发现的同名文件：
         //   - 待确认文件的有效目标文件名 = suggestedFileName ?? fileName
         //   - 其他状态文件的有效目标文件名 = fileName（当前实际文件名）
+        // 键做大小写 + Unicode 规范化归一，与 APFS 的同名判定保持一致
         var fileNameMap: [String: [AudioMetadata.ID]] = [:]
-        for metadata in currentFiles + newDiskFiles {
+        var fileNameDisplay: [String: String] = [:]
+        for metadata in currentFiles.map({ targetsByID[$0.id] ?? $0 }) + newDiskFiles {
             let effectiveFileName: String
             if metadata.processingState == .awaitingConfirmation {
                 effectiveFileName = metadata.suggestedFileName ?? metadata.fileName
             } else {
                 effectiveFileName = metadata.fileName
             }
-            fileNameMap[effectiveFileName, default: []].append(metadata.id)
+            let key = ConflictGroup.normalizedFileNameKey(effectiveFileName)
+            fileNameMap[key, default: []].append(metadata.id)
+            if fileNameDisplay[key] == nil {
+                fileNameDisplay[key] = effectiveFileName
+            }
         }
 
         var groups: [ConflictGroup] = []
@@ -910,12 +940,12 @@ extension MetadataReviewView {
         }
 
         // 文件名重复组（排除已被逻辑重复覆盖的，仅保留包含待写入目标的组）
-        for (name, ids) in fileNameMap where ids.count >= 2 {
+        for (key, ids) in fileNameMap where ids.count >= 2 {
             guard ids.contains(where: { targetIDs.contains($0) }) else { continue }
             let uncoveredIDs = ids.filter { !coveredIDs.contains($0) }
             if uncoveredIDs.count >= 2 {
                 groups.append(ConflictGroup(
-                    matchKey: .fileName(name: name),
+                    matchKey: .fileName(name: fileNameDisplay[key] ?? key),
                     memberIDs: uncoveredIDs
                 ))
             }
@@ -930,12 +960,51 @@ extension MetadataReviewView {
         guard !files.isEmpty else { return }
         currentFiles.append(contentsOf: files)
         coordinator.audioFiles = currentFiles
+
+        // 检测阶段构造的占位条目只有路径与大小，异步补读真实标签：
+        // 冲突面板“删谁留谁”的决策依赖标题/歌手/时长等信息
+        Task { @MainActor in
+            for placeholder in files {
+                guard let real = try? await coordinator.metadataService.readMetadata(from: placeholder.filePath) else {
+                    continue
+                }
+                applyDiscoveredFileMetadata(real, toFileWithID: placeholder.id)
+            }
+        }
     }
 
-    /// 应用冲突解决结果后继续执行写入
-    /// 从冲突解决面板写入单个文件（绕过冲突检测，因为用户已在面板中处理了冲突）
+    /// 把补读到的真实标签合并到占位条目上，保留原有 ID 与处理状态
+    @MainActor
+    private func applyDiscoveredFileMetadata(_ real: AudioMetadata, toFileWithID id: AudioMetadata.ID) {
+        func merge(into list: inout [AudioMetadata]) {
+            guard let index = list.firstIndex(where: { $0.id == id }) else { return }
+            var updated = list[index]
+            updated.originalTitle = real.originalTitle
+            updated.originalArtist = real.originalArtist
+            updated.originalAlbum = real.originalAlbum
+            updated.originalGenre = real.originalGenre
+            updated.originalYear = real.originalYear
+            updated.originalAlbumArtist = real.originalAlbumArtist
+            updated.originalComposer = real.originalComposer
+            updated.originalComment = real.originalComment
+            updated.duration = real.duration
+            updated.bitrate = real.bitrate
+            updated.sampleRate = real.sampleRate
+            updated.format = real.format
+            updated.fileSizeBytes = real.fileSizeBytes
+            updated.fileCreationDate = real.fileCreationDate
+            updated.fileModificationDate = real.fileModificationDate
+            list[index] = updated
+        }
+        merge(into: &currentFiles)
+        merge(into: &coordinator.audioFiles)
+    }
+
+    /// 从冲突解决面板写入单个文件（绕过冲突检测，因为用户已在面板中处理了冲突）。
+    /// 面板中被改名的“已有文件”（completed / pending 等状态）也走此入口
     func writeConflictFile(_ metadata: AudioMetadata) {
-        guard metadata.processingState == .awaitingConfirmation else { return }
+        let originalState = metadata.processingState
+        guard originalState != .processing else { return }
 
         let availableFields = Set(MetadataField.relevantFields(for: metadata))
         guard !availableFields.isEmpty else { return }
@@ -944,7 +1013,11 @@ extension MetadataReviewView {
             .intersection(availableFields)
         guard !selectedFields.isEmpty else { return }
 
-        updateDefaultFieldSelection(to: selectedFields)
+        // 仅候选文件的字段选择计入默认偏好：
+        // “已有文件”改名只有 fileName 一个字段，不应覆盖用户的全局默认勾选
+        if originalState == .awaitingConfirmation {
+            updateDefaultFieldSelection(to: selectedFields)
+        }
         pendingConfirmations.insert(metadata.id)
         updateProcessingState(metadataID: metadata.id, to: .processing)
 
@@ -952,7 +1025,7 @@ extension MetadataReviewView {
             if await !coordinator.ensureBackupDirectoryAccess() {
                 await MainActor.run {
                     pendingConfirmations.remove(metadata.id)
-                    updateProcessingState(metadataID: metadata.id, to: .awaitingConfirmation)
+                    restoreConflictWriteFailure(metadata: metadata, originalState: originalState)
                     isShowingBackupAccessDeniedAlert = true
                 }
                 return
@@ -973,7 +1046,7 @@ extension MetadataReviewView {
             } catch {
                 await MainActor.run {
                     pendingConfirmations.remove(metadata.id)
-                    updateProcessingState(metadataID: metadata.id, to: .awaitingConfirmation)
+                    restoreConflictWriteFailure(metadata: metadata, originalState: originalState)
                     let message: String
                     if let retaggerError = error as? ReTaggerError {
                         message = ErrorPresenter.present(retaggerError, localization: localizationManager).message
@@ -986,6 +1059,27 @@ extension MetadataReviewView {
                     coordinator.setError(message)
                 }
             }
+        }
+    }
+
+    /// 冲突面板写入失败的回滚：候选文件回到待确认；
+    /// “已有文件”还原原状态并撤销面板注入的改名建议，避免凭空多出待确认项
+    @MainActor
+    private func restoreConflictWriteFailure(
+        metadata: AudioMetadata,
+        originalState: AudioMetadata.ProcessingState
+    ) {
+        if originalState == .awaitingConfirmation {
+            updateProcessingState(metadataID: metadata.id, to: .awaitingConfirmation)
+            return
+        }
+        if let index = currentFiles.firstIndex(where: { $0.id == metadata.id }) {
+            currentFiles[index].suggestedFileName = nil
+            currentFiles[index].processingState = originalState
+        }
+        if let index = coordinator.audioFiles.firstIndex(where: { $0.id == metadata.id }) {
+            coordinator.audioFiles[index].suggestedFileName = nil
+            coordinator.audioFiles[index].processingState = originalState
         }
     }
 

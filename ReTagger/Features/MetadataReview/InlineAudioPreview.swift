@@ -7,7 +7,6 @@
 
 import AVFoundation
 import Combine
-import SwiftUI
 import OSLog
 
 @MainActor
@@ -25,6 +24,8 @@ final class InlineAudioPreview: ObservableObject {
     private var timer: AnyCancellable?
     private var scopedURL: URL?
     private var playSessionVersion: Int = 0
+    /// 排程内容已播完：节点里没有待播数据，重播前必须重新排程
+    private var isAtEnd = false
 
     func load(url: URL, fileID: AudioMetadata.ID, coordinator: AppCoordinator? = nil) {
         stop()
@@ -54,20 +55,13 @@ final class InlineAudioPreview: ObservableObject {
             
             newNode.scheduleFile(file, at: nil) { [weak self] in
                 DispatchQueue.main.async {
-                    guard let self = self else { return }
-                    // 仅当会话版本未发生变化时，才处理播放完毕逻辑
-                    guard self.playSessionVersion == currentVersion else { return }
-                    if self.activeFileID == fileID {
-                        self.isPlaying = false
-                        self.currentTime = 0
-                        self.timer?.cancel()
-                        self.timer = nil
-                    }
+                    self?.handlePlaybackReachedEnd(version: currentVersion)
                 }
             }
-            
+
             duration = Double(file.length) / sampleRate
             currentTime = 0
+            isAtEnd = false
             activeFileID = fileID
         } catch {
             Logger.preview.error("InlineAudioPreview: Failed to load audio from \(targetURL.path). Error: \(error.localizedDescription)")
@@ -93,33 +87,33 @@ final class InlineAudioPreview: ObservableObject {
 
     func seek(to time: TimeInterval) {
         guard let file = currentFile, let playerNode = playerNode else { return }
-        let wasPlaying = isPlaying
-        
-        playSessionVersion += 1
-        let currentVersion = playSessionVersion
-        
-        playerNode.stop()
-        
-        let targetFrame = AVAudioFramePosition(time * sampleRate)
+        // 先算目标帧再操作节点：拖到末端时钳制在最后一帧之前。
+        // 若先 stop 再因越界提前返回，会留下“节点已停但 isPlaying 仍为真”的假播放状态
+        let targetFrame = min(
+            max(AVAudioFramePosition(time * sampleRate), 0),
+            max(file.length - 1, 0)
+        )
         let remainingFrames = file.length - targetFrame
         guard remainingFrames > 0 else { return }
-        
+
+        let wasPlaying = isPlaying
+        playSessionVersion += 1
+        let currentVersion = playSessionVersion
+
+        playerNode.stop()
         segmentStartFrame = targetFrame
-        
+        isAtEnd = false
+
         playerNode.scheduleSegment(file, startingFrame: targetFrame, frameCount: AVAudioFrameCount(remainingFrames), at: nil) { [weak self] in
             DispatchQueue.main.async {
-                guard let self = self else { return }
-                guard self.playSessionVersion == currentVersion else { return }
-                self.isPlaying = false
-                self.timer?.cancel()
-                self.timer = nil
+                self?.handlePlaybackReachedEnd(version: currentVersion)
             }
         }
-        
+
         if wasPlaying {
             playerNode.play()
         }
-        currentTime = time
+        currentTime = Double(targetFrame) / sampleRate
     }
 
     func stop() {
@@ -132,20 +126,52 @@ final class InlineAudioPreview: ObservableObject {
         isPlaying = false
         currentTime = 0
         duration = 0
+        isAtEnd = false
         activeFileID = nil
         timer?.cancel()
         timer = nil
-        
+
         if let url = scopedURL {
             url.stopAccessingSecurityScopedResource()
             scopedURL = nil
         }
     }
 
+    /// 排程播完后的统一收尾：复位播放标志并标记待重排程
+    private func handlePlaybackReachedEnd(version: Int) {
+        guard playSessionVersion == version else { return }
+        isPlaying = false
+        isAtEnd = true
+        currentTime = 0
+        timer?.cancel()
+        timer = nil
+    }
+
     private func play() {
+        if isAtEnd {
+            rescheduleFromStart()
+        }
         playerNode?.play()
         isPlaying = true
         startTimer()
+    }
+
+    /// 播完后重播：节点内已无待播数据，从头重新排程整个文件
+    private func rescheduleFromStart() {
+        guard let file = currentFile, let playerNode else { return }
+        playSessionVersion += 1
+        let currentVersion = playSessionVersion
+
+        playerNode.stop()
+        segmentStartFrame = 0
+        currentTime = 0
+        isAtEnd = false
+
+        playerNode.scheduleFile(file, at: nil) { [weak self] in
+            DispatchQueue.main.async {
+                self?.handlePlaybackReachedEnd(version: currentVersion)
+            }
+        }
     }
 
     private func pause() {
@@ -171,58 +197,3 @@ final class InlineAudioPreview: ObservableObject {
     }
 }
 
-/// 简易播放控制条视图
-struct InlinePlaybackBar: View {
-    let metadata: AudioMetadata
-    @ObservedObject var preview: InlineAudioPreview
-    @EnvironmentObject var localizationManager: LocalizationManager
-    @EnvironmentObject var coordinator: AppCoordinator
-
-    private var isActive: Bool { preview.activeFileID == metadata.id }
-
-    var body: some View {
-        VStack(spacing: 4) {
-            // 播放按钮
-            Button {
-                preview.togglePlayPause(for: metadata, coordinator: coordinator)
-            } label: {
-                Image(systemName: isActive && preview.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.title3)
-                    .foregroundColor(isActive && preview.isPlaying ? DesignSystem.Colors.primary : .secondary)
-            }
-            .buttonStyle(.plain)
-            .help(localizationManager.string(isActive && preview.isPlaying ? "conflict.preview.pause" : "conflict.preview.play"))
-
-            // 进度条（仅在当前文件激活时展示）
-            if isActive && preview.duration > 0 {
-                VStack(spacing: 2) {
-                    Slider(
-                        value: Binding(
-                            get: { preview.currentTime },
-                            set: { preview.seek(to: $0) }
-                        ),
-                        in: 0...max(preview.duration, 0.01)
-                    )
-                    .help(localizationManager.string("conflict.preview.seek"))
-
-                    HStack {
-                        Text(formatTime(preview.currentTime))
-                        Spacer()
-                        Text(formatTime(preview.duration))
-                    }
-                    .font(DesignSystem.Typography.caption2)
-                    .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: 140)
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-        }
-        .animation(DesignSystem.Animation.fast, value: isActive)
-    }
-
-    private func formatTime(_ time: TimeInterval) -> String {
-        let m = Int(time) / 60
-        let s = Int(time) % 60
-        return String(format: "%d:%02d", m, s)
-    }
-}

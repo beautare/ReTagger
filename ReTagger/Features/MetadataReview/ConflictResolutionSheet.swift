@@ -79,6 +79,12 @@ struct ConflictResolutionSheet: View {
         }
         .frame(minWidth: 900, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity)
         .onChange(of: allFiles) { newFiles in
+            // 正在试听的文件被删除/移出列表时立即停止，
+            // 否则行消失后音频会脱离控件继续“幽灵播放”
+            if let activeID = preview.activeFileID,
+               !newFiles.contains(where: { $0.id == activeID }) {
+                preview.stop()
+            }
             recalculateConflicts(with: newFiles)
         }
         .onDisappear { preview.stop() }
@@ -173,8 +179,10 @@ struct ConflictResolutionSheet: View {
             Divider()
             
             // 组内冲突文件行列表
+            // 行身份必须绑定文件 ID：成员被删除/写入后行会前移，
+            // 若按位置复用视图，输入框里的 @State 文件名会错位到别的文件上
             VStack(spacing: 0) {
-                ForEach(Array(groupFiles.enumerated()), id: \.offset) { idx, file in
+                ForEach(Array(groupFiles.enumerated()), id: \.element.id) { idx, file in
                     if idx > 0 {
                         Divider()
                     }
@@ -217,39 +225,63 @@ struct ConflictResolutionSheet: View {
 
     private func recalculateConflicts(with newFiles: [AudioMetadata]) {
         var updatedConflicts: [ConflictGroup] = []
-        
+
         for group in conflicts {
             let activeMembers = group.memberIDs.compactMap { id in
                 newFiles.first { $0.id == id }
             }
-            
+
             guard activeMembers.count >= 2 else { continue }
-            
+
             switch group.matchKey {
-            case .titleArtist(_, _):
-                let confirmables = activeMembers.filter { $0.processingState == .awaitingConfirmation }
-                if confirmables.count >= 2 {
-                    updatedConflicts.append(group)
+            case .titleArtist(let title, let artist):
+                // 重新验证标题/艺人是否仍然重复（面板非模态，主窗口可并行修改元数据）
+                let matching = activeMembers.filter { file in
+                    let fileTitle = (file.finalTitle ?? "")
+                        .trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    let fileArtist = (file.finalArtist ?? "")
+                        .trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    return fileTitle == title && fileArtist == artist
                 }
-            case .fileName(_):
+                let confirmables = matching.filter { $0.processingState == .awaitingConfirmation }
+                if confirmables.count >= 2 {
+                    // 复用原组实例保持 id 稳定（卡片不重建、行内输入不丢失），
+                    // 仅裁剪已失效成员，避免残留 ID 造成行错位
+                    var updatedGroup = group
+                    updatedGroup.memberIDs = matching.map(\.id)
+                    updatedConflicts.append(updatedGroup)
+                }
+            case .fileName(let originalName):
                 var nameMap: [String: [AudioMetadata.ID]] = [:]
+                var displayNames: [String: String] = [:]
                 for file in activeMembers {
                     let effectiveName = file.processingState == .awaitingConfirmation
                         ? (file.suggestedFileName ?? file.fileName)
                         : file.fileName
-                    nameMap[effectiveName, default: []].append(file.id)
+                    let key = ConflictGroup.normalizedFileNameKey(effectiveName)
+                    nameMap[key, default: []].append(file.id)
+                    if displayNames[key] == nil {
+                        displayNames[key] = effectiveName
+                    }
                 }
-                
-                for (n, ids) in nameMap where ids.count >= 2 {
-                     let updatedGroup = ConflictGroup(
-                        matchKey: .fileName(name: n),
-                        memberIDs: ids
-                    )
-                    updatedConflicts.append(updatedGroup)
+
+                let originalKey = ConflictGroup.normalizedFileNameKey(originalName)
+                for (key, ids) in nameMap where ids.count >= 2 {
+                    if key == originalKey {
+                        // 名字未变的桶复用原组实例，保持卡片 id 稳定
+                        var updatedGroup = group
+                        updatedGroup.memberIDs = ids
+                        updatedConflicts.append(updatedGroup)
+                    } else {
+                        updatedConflicts.append(ConflictGroup(
+                            matchKey: .fileName(name: displayNames[key] ?? key),
+                            memberIDs: ids
+                        ))
+                    }
                 }
             }
         }
-        
+
         DispatchQueue.main.async {
             self.conflicts = updatedConflicts
             if updatedConflicts.isEmpty {
@@ -281,6 +313,8 @@ struct FileRowView: View {
     
     @State private var isDraggingProgress = false
     @State private var isHoveringProgress = false
+    /// 拖拽中的本地进度预览（0-1）；松手时才真正 seek，避免每帧重排程造成断续爆音
+    @State private var dragProgressOverride: Double?
     
     // 差异性布尔值
     let hasTitleDiff: Bool
@@ -389,16 +423,10 @@ struct FileRowView: View {
                             .foregroundColor(DesignSystem.Colors.success)
                             .font(.system(size: 15))
                             .help(localizationManager.string("conflict.status.written"))
-                    } else {
-                        HoverIconButton(
-                            iconName: "checkmark.circle",
-                            color: DesignSystem.Colors.textSecondary,
-                            hoverColor: DesignSystem.Colors.success,
-                            size: 15,
-                            tooltip: localizationManager.string("conflict.action.write_keep.help"),
-                            action: { commitFileNameEdit() }
-                        )
                     }
+                    // 其余状态的“已有文件”未改名时不给写入按钮：
+                    // 名字与冲突目标相同，提交必然被查重拒绝，按钮没有有效语义；
+                    // 用户修改名字后 isModified 分支会给出绿勾
                 }
                 
                 if let error = fileNameError {
@@ -476,7 +504,7 @@ struct FileRowView: View {
             if isActive && preview.duration > 0 {
                 GeometryReader { geo in
                     let totalWidth = geo.size.width
-                    let progress = preview.currentTime / max(preview.duration, 0.01)
+                    let progress = dragProgressOverride ?? (preview.currentTime / max(preview.duration, 0.01))
                     let handleSize: CGFloat = (isDraggingProgress || isHoveringProgress) ? 12 : 8
                     let xOffset = max(0, min(totalWidth - handleSize, totalWidth * CGFloat(progress) - handleSize / 2))
                     
@@ -510,12 +538,13 @@ struct FileRowView: View {
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
                                 isDraggingProgress = true
-                                let x = value.location.x
-                                let pct = max(0, min(1, x / totalWidth))
-                                preview.seek(to: Double(pct) * preview.duration)
+                                dragProgressOverride = max(0, min(1, value.location.x / totalWidth))
                             }
-                            .onEnded { _ in
+                            .onEnded { value in
+                                let pct = max(0, min(1, value.location.x / totalWidth))
+                                preview.seek(to: Double(pct) * preview.duration)
                                 isDraggingProgress = false
+                                dragProgressOverride = nil
                             }
                     )
                     .onHover { inside in
@@ -641,28 +670,23 @@ struct FileRowView: View {
             return
         }
         
-        // 2. 物理磁盘上查重（仅在修改了名字的前提下）
+        // 2. 物理磁盘上查重（仅在修改了名字的前提下）。
+        // 磁盘上被占用即拒绝，不做“已跟踪文件”豁免：底层 renameFile 遇到占用
+        // 会静默追加“_1”后缀，在解决同名的面板里绝不能落盘一个用户没确认过的名字
         if trimmed.localizedCaseInsensitiveCompare(file.fileName) != .orderedSame {
             let targetURL = file.filePath.deletingLastPathComponent().appendingPathComponent(trimmed)
             if FileManager.default.fileExists(atPath: targetURL.path) {
-                let isTracked = allFiles.contains { o in
-                    o.filePath.standardizedFileURL.path.decomposedStringWithCanonicalMapping == targetURL.standardizedFileURL.path.decomposedStringWithCanonicalMapping
-                }
-                if !isTracked {
-                    fileNameError = localizationManager.string("conflict.error.conflict_in_group")
-                    return
-                }
+                fileNameError = localizationManager.string("conflict.error.conflict_in_group")
+                return
             }
         }
-        
+
+        // 只注入改名建议，不改动处理状态；
+        // “已有文件”的状态升级与失败回滚由 writeConflictFile 统一负责
         if let i = allFiles.firstIndex(where: { $0.id == file.id }) {
             allFiles[i].suggestedFileName = trimmed
-            // 💡 关键：若被修改的不是“待确认”状态（即它是只读已有文件），升级其状态为 awaitsConfirmation，保证可以通过底层的 writeConflictFile
-            if allFiles[i].processingState != .awaitingConfirmation {
-                allFiles[i].processingState = .awaitingConfirmation
-            }
         }
-        
+
         fileNameError = nil
         if let updated = allFiles.first(where: { $0.id == file.id }) {
             preview.stop()
