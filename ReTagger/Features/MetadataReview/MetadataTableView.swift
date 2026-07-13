@@ -1453,15 +1453,15 @@ class ProcessingRowView: NSTableRowView {
 final class VerticallyCenteredTextFieldCell: NSTextFieldCell {
     override func titleRect(forBounds rect: NSRect) -> NSRect {
         var titleRect = super.titleRect(forBounds: rect)
-        let textHeight: CGFloat
+        
+        // 优先从富文本属性获取字体，无富文本则获取 cell.font
         let attributed = attributedStringValue
-        if attributed.length > 0 {
-            textHeight = ceil(attributed.size().height)
-        } else if let font = self.font {
-            textHeight = ceil(font.ascender - font.descender + font.leading)
-        } else {
-            textHeight = titleRect.height
-        }
+        let effectiveFont = (attributed.length > 0 ? attributed.attribute(.font, at: 0, effectiveRange: nil) as? NSFont : nil) ?? font
+        
+        guard let font = effectiveFont else { return titleRect }
+        
+        // 轻量 O(1) 浮点数计算文本精准行高，避免高频触发 CoreText 文本布局引擎
+        let textHeight = ceil(font.ascender - font.descender + font.leading)
 
         if titleRect.height > textHeight {
             titleRect.origin.y += floor((titleRect.height - textHeight) / 2)
