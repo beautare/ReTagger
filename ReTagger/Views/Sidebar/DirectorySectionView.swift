@@ -16,7 +16,8 @@ struct DirectorySectionView: View, Equatable {
         lhs.sidebarSizeClass == rhs.sidebarSizeClass &&
         lhs.isHistoryPopoverPresented == rhs.isHistoryPopoverPresented &&
         lhs.tappedHistoryEntryID == rhs.tappedHistoryEntryID &&
-        lhs.hoveredEntryID == rhs.hoveredEntryID
+        lhs.hoveredEntryID == rhs.hoveredEntryID &&
+        lhs.hoveredRootNodeID == rhs.hoveredRootNodeID
     }
 
     @EnvironmentObject var localizationManager: LocalizationManager
@@ -36,6 +37,7 @@ struct DirectorySectionView: View, Equatable {
     @State private var isHistoryPopoverPresented = false
     @State private var tappedHistoryEntryID: String?
     @State private var hoveredEntryID: String? = nil
+    @State private var hoveredRootNodeID: UUID? = nil
 
     /// 是否处于迷你列模式
     private var isMini: Bool {
@@ -261,7 +263,8 @@ struct DirectorySectionView: View, Equatable {
     private func rootFolderSection(_ rootNode: DirectoryTreeNode) -> some View {
         let isAssociated = isCurrentPlayingNode(rootNode)
         let isPlaying = isAssociated && playbackController.isPlaying
-        
+        let isHovered = hoveredRootNodeID == rootNode.id
+
         return HStack(spacing: DesignSystem.Spacing.sm) {
             if #available(macOS 14.0, *) {
                 Image(systemName: isPlaying ? "waveform" : (rootNode.isDirectory ? "folder.fill" : "music.note"))
@@ -274,21 +277,29 @@ struct DirectorySectionView: View, Equatable {
                     .foregroundColor(isAssociated ? DesignSystem.Colors.success : DesignSystem.Colors.primary)
             }
             
-            VStack(alignment: .leading, spacing: 2) {
-                Text(rootNode.name)
-                    .font(isAssociated ? DesignSystem.Typography.body.bold() : DesignSystem.Typography.body)
-                    .foregroundColor(isAssociated ? DesignSystem.Colors.success : DesignSystem.Colors.textPrimary)
-                    .lineLimit(1)
-                
-                Text(rootNode.url.path)
-                    .font(DesignSystem.Typography.caption2)
-                    .foregroundColor(isAssociated ? DesignSystem.Colors.success.opacity(0.8) : DesignSystem.Colors.textTertiary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+            GeometryReader { proxy in
+                VStack(alignment: .leading, spacing: 2) {
+                    MarqueeTextView(
+                        text: rootNode.name,
+                        font: .systemFont(ofSize: 13, weight: isAssociated ? .semibold : .regular),
+                        textColor: isAssociated ? NSColor(DesignSystem.Colors.success) : NSColor(DesignSystem.Colors.textPrimary),
+                        width: proxy.size.width,
+                        isPlaying: isHovered
+                    )
+                    .frame(height: 16)
+
+                    MarqueeTextView(
+                        text: rootNode.url.path,
+                        font: .systemFont(ofSize: 11, weight: .regular),
+                        textColor: isAssociated ? NSColor(DesignSystem.Colors.success).withAlphaComponent(0.8) : NSColor(DesignSystem.Colors.textTertiary),
+                        width: proxy.size.width,
+                        isPlaying: isHovered
+                    )
+                    .frame(height: 14)
+                }
             }
-            
-            Spacer()
-            
+            .frame(height: 32)
+
             if isAssociated {
                 HStack(spacing: 4) {
                     Circle()
@@ -326,6 +337,12 @@ struct DirectorySectionView: View, Equatable {
                 .stroke(isAssociated ? DesignSystem.Colors.success.opacity(0.24) : Color.clear, lineWidth: 1)
         )
         .padding(.horizontal, DesignSystem.Spacing.sm)
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.12)) {
+                hoveredRootNodeID = hovering ? rootNode.id : nil
+            }
+        }
     }
 
     private func isCurrentPlayingNode(_ rootNode: DirectoryTreeNode) -> Bool {
