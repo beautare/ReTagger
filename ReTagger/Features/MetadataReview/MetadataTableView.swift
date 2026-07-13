@@ -1449,6 +1449,42 @@ class ProcessingRowView: NSTableRowView {
     }
 }
 
+/// 在自定义 bounds 内部精准垂直居中绘制文本的 NSTextFieldCell
+final class VerticallyCenteredTextFieldCell: NSTextFieldCell {
+    override func titleRect(forBounds rect: NSRect) -> NSRect {
+        var titleRect = super.titleRect(forBounds: rect)
+        let textHeight: CGFloat
+        let attributed = attributedStringValue
+        if attributed.length > 0 {
+            textHeight = ceil(attributed.size().height)
+        } else if let font = self.font {
+            textHeight = ceil(font.ascender - font.descender + font.leading)
+        } else {
+            textHeight = titleRect.height
+        }
+
+        if titleRect.height > textHeight {
+            titleRect.origin.y += floor((titleRect.height - textHeight) / 2)
+            titleRect.size.height = textHeight
+        }
+        return titleRect
+    }
+
+    override func drawingRect(forBounds rect: NSRect) -> NSRect {
+        return titleRect(forBounds: rect)
+    }
+
+    override func select(withFrame rect: NSRect, in controlView: NSView, editor textObj: NSText, delegate: Any?, start selStart: Int, length selLength: Int) {
+        let newRect = titleRect(forBounds: rect)
+        super.select(withFrame: newRect, in: controlView, editor: textObj, delegate: delegate, start: selStart, length: selLength)
+    }
+
+    override func edit(withFrame rect: NSRect, in controlView: NSView, editor textObj: NSText, delegate: Any?, event: NSEvent?) {
+        let newRect = titleRect(forBounds: rect)
+        super.edit(withFrame: newRect, in: controlView, editor: textObj, delegate: delegate, event: event)
+    }
+}
+
 fileprivate struct MetadataCellContent {
     let primary: NSAttributedString
     let secondary: NSAttributedString?
@@ -1580,16 +1616,6 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         textField = primaryLabel
     }
 
-    // TEMP DEBUG - 用于定位垂直居中问题，确认后会移除
-    private static var debugLogCount = 0
-    override func layout() {
-        super.layout()
-        if MetadataTableCellView.debugLogCount < 40 {
-            MetadataTableCellView.debugLogCount += 1
-            print("[CELL-DEBUG] col=\(identifier?.rawValue ?? "?") bounds=\(bounds) primaryFrame=\(primaryLabel.frame) primaryHidden=\(primaryLabel.isHidden) secondaryHidden=\(secondaryLabel.isHidden) secondaryFrame=\(secondaryLabel.frame) editBtnHidden=\(editButtonBackground.isHidden) editBtnFrame=\(editButtonBackground.frame) centerYConst=\(primaryCenterY.constant) leadNoBtnActive=\(primaryLeadingNoButton.isActive) leadWithBtnActive=\(primaryLeadingWithButton.isActive)")
-        }
-    }
-
     @objc private func editButtonTapped() {
         onEditButtonClicked?(self)
     }
@@ -1656,6 +1682,7 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
             super.mouseExited(with: event)
         }
     }
+
     fileprivate func configure(with content: MetadataCellContent) {
         // 如果正在编辑，不更新内容
         guard !isInEditMode else { return }
@@ -1663,10 +1690,18 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         primaryLabel.attributedStringValue = content.primary
         primaryLabel.toolTip = content.toolTip
 
+        // 同步更新控件本身的 font，确保 Auto Layout intrinsicContentSize 的精准计算
+        if content.primary.length > 0, let primaryFont = content.primary.attribute(.font, at: 0, effectiveRange: nil) as? NSFont {
+            primaryLabel.font = primaryFont
+        }
+
         if let secondary = content.secondary {
             secondaryLabel.isHidden = false
             secondaryLabel.attributedStringValue = secondary
             secondaryLabel.toolTip = content.toolTip
+            if secondary.length > 0, let secFont = secondary.attribute(.font, at: 0, effectiveRange: nil) as? NSFont {
+                secondaryLabel.font = secFont
+            }
             secondaryTopConstraint.isActive = true
             secondaryLeadingConstraint.isActive = true
             secondaryTrailingConstraint.isActive = true
@@ -1852,6 +1887,7 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
     
     private static func makeLabel() -> NSTextField {
         let label = NSTextField()
+        label.cell = VerticallyCenteredTextFieldCell()
         label.isEditable = false
         label.isBordered = false
         label.drawsBackground = false
@@ -1929,11 +1965,17 @@ class MetadataStatusCellView: NSTableCellView {
         ])
         
         // Status Label
+        statusLabel.cell = VerticallyCenteredTextFieldCell()
         statusLabel.isEditable = false
         statusLabel.isBordered = false
         statusLabel.drawsBackground = false
         statusLabel.lineBreakMode = .byTruncatingTail
         statusLabel.font = .systemFont(ofSize: 12)
+        if let cell = statusLabel.cell as? NSTextFieldCell {
+            cell.wraps = false
+            cell.isScrollable = false
+            cell.truncatesLastVisibleLine = true
+        }
         
         // Add Icon and Label to Info Stack
         statusInfoStack.addArrangedSubview(statusIcon)
