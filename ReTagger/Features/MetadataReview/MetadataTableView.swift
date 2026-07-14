@@ -82,7 +82,9 @@ struct MetadataTableView: NSViewControllerRepresentable {
         // 文字大小档位变化时强制整表重刷，确保行高随字号重新计算
         if nsViewController.fontScale != fontScale {
             nsViewController.fontScale = fontScale
-            nsViewController.reloadAllRows()
+            DispatchQueue.main.async {
+                nsViewController.reloadAllRows()
+            }
         }
 
         // Update closures in case they capture new state
@@ -186,13 +188,30 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
         updateColumns()
     }
 
-    /// 字号档位变化后整表重刷：usesAutomaticRowHeights 会据此重新计算每行高度
     func reloadAllRows() {
-        tableView.reloadData()
+        guard !files.isEmpty else {
+            tableView.reloadData()
+            return
+        }
+        
+        let allRows = IndexSet(integersIn: 0..<files.count)
+        let allCols = IndexSet(integersIn: 0..<tableView.numberOfColumns)
+        
+        NSAnimationContext.beginGrouping()
+        NSAnimationContext.current.duration = 0
+        
+        // 关键：通知行高缓存失效
+        tableView.noteHeightOfRows(withIndexesChanged: allRows)
+        
+        if !allCols.isEmpty {
+            // 使用局部刷新 API 更新所有行，这种方式不会销毁 NSTableView 的内部可视边界状态
+            tableView.reloadData(forRowIndexes: allRows, columnIndexes: allCols)
+        } else {
+            tableView.reloadData()
+        }
+        
         adjustStatusColumnWidth()
-        // reloadData() 不会同步触发 automaticRowHeights 的布局与重绘，
-        // 快捷键触发的刷新不经过表格自身的事件追踪循环，视觉上会一直空白到下次滚动才刷新
-        tableView.layoutSubtreeIfNeeded()
+        NSAnimationContext.endGrouping()
     }
     
     override func loadView() {
