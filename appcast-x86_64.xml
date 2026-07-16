@@ -7,6 +7,15 @@
     <language>zh</language>
     <!-- ITEMS -->
     <item>
+      <title>Version 1.12.0</title>
+      <pubDate>Thu, 16 Jul 2026 13:16:33 +0000</pubDate>
+      <sparkle:version>2607162110</sparkle:version>
+      <sparkle:shortVersionString>1.12.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>12.4</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p><a href="https://github.com/beautare/ReTagger/releases/tag/v1.12.0">在 GitHub 查看更新说明 / View release notes on GitHub</a></p>]]></description>
+      <enclosure url="https://github.com/beautare/ReTagger/releases/download/v1.12.0/ReTagger-v1.12.0-x86_64.dmg" sparkle:edSignature="qU8rQV8NsVtf/5SelaO4fQHnQVPZRj6rJCHqZtk35FrQt0fFO+Ndzr5o2iz3iTvgxVG0keEda3TZZJm69yHZCw==" length="7711975" type="application/octet-stream" />
+    </item>
+    <item>
       <title>Version 1.11.7</title>
       <pubDate>Tue, 14 Jul 2026 07:06:02 +0000</pubDate>
       <sparkle:version>2607141458</sparkle:version>
