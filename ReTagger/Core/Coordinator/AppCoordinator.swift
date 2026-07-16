@@ -55,7 +55,6 @@ class AppCoordinator: ObservableObject {
     }
     @Published private(set) var scanRequest: DirectoryScanRequest?
     @Published private(set) var undoRecords: [AudioMetadata.ID: MetadataUndoRecord] = [:]
-    @Published private(set) var activityLogs: [ActivityLogEntry] = []
 
     // MARK: - Security Scope
 
@@ -382,6 +381,7 @@ class AppCoordinator: ObservableObject {
         if !resolvedURLs.isEmpty {
             // 既然是恢复上次的工作区，直接跳到主审查页面以展示全屏加载动画
             currentStep = .metadataReview
+            selectedDirectory = resolvedURLs.first
             
             let request = DirectoryScanRequest(
                 id: UUID(),
@@ -710,6 +710,9 @@ class AppCoordinator: ObservableObject {
                     workspaceDirectories.append(url)
                 }
             }
+            if selectedDirectory == nil {
+                selectedDirectory = urls.first
+            }
         }
 
         let request = DirectoryScanRequest(
@@ -915,7 +918,7 @@ class AppCoordinator: ObservableObject {
     func setError(_ message: String) {
         errorMessage = message
         isLoading = false
-        appendLog(.error, message)
+        Logger.coordinator.error("\(message, privacy: .public)")
     }
 
     func clearError() {
@@ -1281,48 +1284,11 @@ class AppCoordinator: ObservableObject {
 
         audioFiles.append(contentsOf: newFiles)
         playbackController.append(newFiles)
-        appendLog(.info, "拖入了 \(newFiles.count) 个音频文件")
+        Logger.fileSystem.info("拖入了 \(newFiles.count, privacy: .public) 个音频文件")
 
         // 自动进入元数据审查步骤
         if currentStep == .directorySelection {
             currentStep = .metadataReview
         }
-    }
-}
-
-// MARK: - Activity Log
-
-extension AppCoordinator {
-    struct ActivityLogEntry: Identifiable {
-        enum Level: String {
-            case info = "信息"
-            case warning = "警告"
-            case error = "错误"
-
-            var localizationKey: String {
-                switch self {
-                case .info: return "logs.level.info"
-                case .warning: return "logs.level.warning"
-                case .error: return "logs.level.error"
-                }
-            }
-        }
-        let id = UUID()
-        let timestamp: Date
-        let level: Level
-        let message: String
-    }
-
-    func appendLog(_ level: ActivityLogEntry.Level, _ message: String) {
-        let entry = ActivityLogEntry(timestamp: Date(), level: level, message: message)
-        activityLogs.append(entry)
-        let maxEntries = 500
-        if activityLogs.count > maxEntries {
-            activityLogs.removeFirst(activityLogs.count - maxEntries)
-        }
-    }
-
-    func clearLogs() {
-        activityLogs.removeAll()
     }
 }

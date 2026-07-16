@@ -338,6 +338,9 @@ struct DirectorySectionView: View, Equatable {
         )
         .padding(.horizontal, DesignSystem.Spacing.sm)
         .contentShape(Rectangle())
+        .onTapGesture {
+            onNavigateToDirectory(rootNode.url)
+        }
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.12)) {
                 hoveredRootNodeID = hovering ? rootNode.id : nil

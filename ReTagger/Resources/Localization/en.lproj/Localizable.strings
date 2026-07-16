@@ -35,7 +35,7 @@
 "action.restart" = "Restart";
 "action.add_folder" = "Add Files/Folders";
 "action.history" = "History";
-"action.remove_directory" = "Remove directory";
+"action.remove_directory" = "Remove";
 "action.close_all" = "Close all directories";
 "action.undo" = "Undo";
 "action.undo_short" = "Undo";
@@ -440,10 +440,7 @@
 
 /* Settings Logs Tab */
 "settings.logs.title" = "Activity Logs";
-"settings.logs.clear_button" = "Clear Logs";
-"logs.level.info" = "Info";
-"logs.level.warning" = "Warning";
-"logs.level.error" = "Error";
+"settings.logs.refresh_button" = "Refresh";
 
 /* Settings Update Tab */
 "settings.update.auto_check" = "Auto-check for updates";

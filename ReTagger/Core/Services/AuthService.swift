@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import OSLog
+import AppKit
 
 enum AuthStorageKeys {
     static let userToken = "vip.retagger.userToken"
@@ -337,53 +338,53 @@ class AuthService: AuthTokenProviding, ObservableObject {
     }
 
         
-    // MARK: - Google OAuth (Client-Side PKCE)
-    
-    /// Stores the current PKCE code verifier for the ongoing OAuth flow
-    private static var currentCodeVerifier: String?
-    
-    /// Generates a Google OAuth authorization URL using PKCE
-    /// - Returns: The OAuth authorization URL to open in WebView
-    func generateGoogleAuthURL() throws -> URL {
-        // Generate PKCE parameters
+    // MARK: - Google OAuth (Client-Side PKCE, loopback redirect)
+
+    /// 发起 Google 登录：起本地 loopback 回调服务、用系统浏览器打开授权页、
+    /// 等待授权码回调后与后端换取登录态。
+    ///
+    /// Google 已废弃 Desktop 类型 client 的自定义 URL Scheme 重定向，要求
+    /// 原生应用改用 loopback 地址 + 系统浏览器（而非内嵌 WebView）完成授权。
+    func signInWithGoogle() async throws {
+        let server = try await GoogleOAuthLoopbackServer.start()
+        defer { server.stop() }
+
+        let redirectUri = GoogleOAuthConfig.redirectUri(port: server.port)
         let codeVerifier = PKCEHelper.generateCodeVerifier()
         let codeChallenge = PKCEHelper.generateCodeChallenge(from: codeVerifier)
-        
-        // Store verifier for later use in token exchange
-        AuthService.currentCodeVerifier = codeVerifier
-        
-        // Build the authorization URL
-        guard let url = GoogleOAuthConfig.buildAuthURL(codeChallenge: codeChallenge) else {
+        let state = PKCEHelper.generateCodeVerifier()
+
+        guard let url = GoogleOAuthConfig.buildAuthURL(
+            codeChallenge: codeChallenge,
+            redirectUri: redirectUri,
+            state: state
+        ) else {
             throw ReTaggerError.networkError("Failed to build Google OAuth URL")
         }
-        
-        return url
-    }
-    
-    /// Handles the OAuth callback by exchanging the code for tokens via backend
-    /// - Parameter code: The authorization code from Google
-    func handleGoogleCallback(code: String) async throws {
-        guard let networkService = networkService else { return }
-        guard let codeVerifier = AuthService.currentCodeVerifier else {
-            throw ReTaggerError.networkError("PKCE code verifier not found")
+
+        guard NSWorkspace.shared.open(url) else {
+            throw ReTaggerError.networkError("无法打开系统浏览器完成 Google 登录")
         }
-        
-        // Clear the stored verifier
-        defer { AuthService.currentCodeVerifier = nil }
-        
-        // Build request for backend OAuth endpoint
+
+        let callback = try await server.waitForCallback()
+        guard callback.state == state else {
+            throw ReTaggerError.networkError("授权回调校验失败，请重新登录")
+        }
+
+        guard let networkService = networkService else { return }
+
         let request = NativeOAuthRequest(
-            code: code,
-            redirectUri: GoogleOAuthConfig.redirectUri,
+            code: callback.code,
+            redirectUri: redirectUri,
             codeVerifier: codeVerifier
         )
-        
+
         let response: ApiResponse<OAuthResponse> = try await networkService.request(
             endpoint: "/api/v1/users/oauth",
             method: .POST,
             body: request
         )
-        
+
         try await handleOAuthResponse(response.data)
     }
     

@@ -18,6 +18,7 @@ struct SettingsView: View {
     @Environment(\.presentationMode) var presentationMode
     
     @State private var selectedTab: Int = 0
+    @State private var diagnosticsLogEntries: [DiagnosticsLogEntry] = []
 
     /// 四个设置分页的标题与图标，顺序即持久化的 tab 索引
     private let tabItems: [(titleKey: String, icon: String)] = [
@@ -449,24 +450,25 @@ struct SettingsView: View {
                 Text(localizationManager.string("settings.logs.title"))
                     .font(DesignSystem.Typography.title3)
                 Spacer()
-                Button(localizationManager.string("settings.logs.clear_button")) {
-                    coordinator.clearLogs()
+                Button(localizationManager.string("settings.logs.refresh_button")) {
+                    refreshDiagnosticsLog()
                 }
-                .disabled(coordinator.activityLogs.isEmpty)
             }
-            
+
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                    ForEach(coordinator.activityLogs) { entry in
+                    ForEach(diagnosticsLogEntries) { entry in
                         HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
                             Text(logTimestamp(entry.timestamp))
                                 .font(DesignSystem.Typography.caption2)
                                 .foregroundColor(.secondary)
                                 .frame(width: 80, alignment: .leading)
-                            Text(localizationManager.string(entry.level.localizationKey))
+                            Text(entry.category)
                                 .font(DesignSystem.Typography.caption2)
                                 .foregroundColor(color(for: entry.level))
-                                .frame(width: 44, alignment: .leading)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .frame(width: 72, alignment: .leading)
                             Text(entry.message)
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.textPrimary)
@@ -489,6 +491,11 @@ struct SettingsView: View {
             )
         }
         .padding(.top, 4)
+        .onAppear { refreshDiagnosticsLog() }
+    }
+
+    private func refreshDiagnosticsLog() {
+        diagnosticsLogEntries = DiagnosticsLogStore.fetchRecentEntries()
     }
     
     // MARK: - Helpers
@@ -596,10 +603,9 @@ struct SettingsView: View {
         return formatter.string(from: date)
     }
 
-    private func color(for level: AppCoordinator.ActivityLogEntry.Level) -> Color {
+    private func color(for level: DiagnosticsLogEntry.Level) -> Color {
         switch level {
         case .info: return .secondary
-        case .warning: return .orange
         case .error: return .red
         }
     }

@@ -139,20 +139,22 @@ struct LoginView: View {
     }
     
     private func startGoogleLogin() {
-        do {
-            isGoogleLoading = true
-            oauthErrorMessage = nil
-            errorMessage = nil
-            
-            let url = try authService.generateGoogleAuthURL()
-            AuthWindowManager.shared.showAuthWindow(url: url, localization: localizationManager) { code in
-                completeGoogleLogin(code: code)
-            } onCancel: {
+        Task {
+            await MainActor.run {
+                isGoogleLoading = true
+                oauthErrorMessage = nil
+                errorMessage = nil
+            }
+            do {
+                try await authService.signInWithGoogle()
+            } catch {
+                await MainActor.run {
+                    oauthErrorMessage = friendlyMessage(from: error)
+                }
+            }
+            await MainActor.run {
                 isGoogleLoading = false
             }
-        } catch {
-            oauthErrorMessage = friendlyMessage(from: error)
-            isGoogleLoading = false
         }
     }
     
@@ -205,25 +207,6 @@ struct LoginView: View {
     }
     #endif
 
-    private func completeGoogleLogin(code: String) {
-        Task {
-            await MainActor.run {
-                isGoogleLoading = true
-                oauthErrorMessage = nil
-            }
-            do {
-                try await authService.handleGoogleCallback(code: code)
-            } catch {
-                await MainActor.run {
-                    oauthErrorMessage = friendlyMessage(from: error)
-                }
-            }
-            await MainActor.run {
-                isGoogleLoading = false
-            }
-        }
-    }
-    
     private func friendlyMessage(from error: Error) -> String {
         AuthErrorHelper.friendlyMessage(from: error, localization: localizationManager)
     }

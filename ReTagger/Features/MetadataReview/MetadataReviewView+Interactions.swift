@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import OSLog
 
 @MainActor
 extension MetadataReviewView {
@@ -270,7 +271,7 @@ extension MetadataReviewView {
     func processSelectionWithAI(selection: Set<AudioMetadata.ID>) {
         // 重入保护：右键菜单不受 isProcessing 禁用，避免两个并发任务共享进度状态
         guard !isProcessing else {
-            coordinator.appendLog(.warning, "已有 AI 打标签任务进行中，忽略重复触发")
+            Logger.ai.warning("已有 AI 打标签任务进行中，忽略重复触发")
             return
         }
 
@@ -345,7 +346,7 @@ extension MetadataReviewView {
 
                     isProcessing = false
                     processingProgress = 1.0
-                    coordinator.appendLog(.info, "AI 打标签完成：\(updatedItems.count) 条")
+                    Logger.ai.info("AI 打标签完成：\(updatedItems.count, privacy: .public) 条")
                 }
 
             } catch {
@@ -355,7 +356,7 @@ extension MetadataReviewView {
                     restoreProcessingStates(previousStates)
 
                     let feedback = humanizedAIError(error)
-                    coordinator.appendLog(.error, feedback.logMessage)
+                    Logger.ai.error("\(feedback.logMessage, privacy: .public)")
                     coordinator.setError(feedback.userMessage)
                 }
             }

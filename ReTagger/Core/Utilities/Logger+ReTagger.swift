@@ -64,7 +64,7 @@ extension Logger {
     /// - Returns: 操作开始时间（用于计算耗时）
     func logOperationStart(_ operation: String) -> Date {
         let startTime = Date()
-        self.debug("[\(operation)] Started")
+        self.debug("[\(operation, privacy: .public)] Started")
         return startTime
     }
 
@@ -74,7 +74,7 @@ extension Logger {
     ///   - startTime: 操作开始时间
     func logOperationEnd(_ operation: String, startTime: Date) {
         let duration = Date().timeIntervalSince(startTime)
-        self.info("[\(operation)] Completed in \(String(format: "%.3f", duration))s")
+        self.info("[\(operation, privacy: .public)] Completed in \(String(format: "%.3f", duration), privacy: .public)s")
     }
 
     /// 记录操作失败
@@ -82,7 +82,7 @@ extension Logger {
     ///   - operation: 操作名称
     ///   - error: 错误信息
     func logOperationFailed(_ operation: String, error: Error) {
-        self.error("[\(operation)] Failed: \(error.localizedDescription)")
+        self.error("[\(operation, privacy: .public)] Failed: \(error.localizedDescription, privacy: .public)")
     }
 }
 

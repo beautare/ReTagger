@@ -593,7 +593,7 @@ extension MetadataReviewView {
                         pendingScrollTarget = firstProcessed.id
                     }
 
-                    coordinator.appendLog(.info, "AI 打标签完成：\(currentFiles.count) 条")
+                    Logger.ai.info("AI 打标签完成：\(currentFiles.count, privacy: .public) 条")
                 }
 
             } catch {
@@ -603,7 +603,7 @@ extension MetadataReviewView {
                     restoreProcessingStates(previousStates)
 
                     let feedback = humanizedAIError(error)
-                    coordinator.appendLog(.error, feedback.logMessage)
+                    Logger.ai.error("\(feedback.logMessage, privacy: .public)")
                     coordinator.setError(feedback.userMessage)
                 }
             }

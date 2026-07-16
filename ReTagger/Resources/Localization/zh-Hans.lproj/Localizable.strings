@@ -35,7 +35,7 @@
 "action.restart" = "重新开始";
 "action.add_folder" = "添加文件/文件夹";
 "action.history" = "历史目录";
-"action.remove_directory" = "移除此目录";
+"action.remove_directory" = "移除";
 "action.close_all" = "关闭所有目录";
 "action.undo" = "撤销";
 "action.undo_short" = "撤回";
@@ -441,10 +441,7 @@
 
 /* Settings Logs Tab */
 "settings.logs.title" = "运行日志";
-"settings.logs.clear_button" = "清空日志";
-"logs.level.info" = "信息";
-"logs.level.warning" = "警告";
-"logs.level.error" = "错误";
+"settings.logs.refresh_button" = "刷新";
 
 /* Settings Update Tab */
 "settings.update.auto_check" = "自动检查更新";
