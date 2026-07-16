@@ -9,6 +9,7 @@
 
 import Foundation
 import Network
+import OSLog
 
 final class GoogleOAuthLoopbackServer {
 
@@ -37,12 +38,22 @@ final class GoogleOAuthLoopbackServer {
         let state: String?
     }
 
-    private let listener: NWListener
-    let port: UInt16
+    /// 授权回调的单次交付状态机：回调可能先于 waitForCallback 注册到达，
+    /// 因此结果需要暂存；反向则唤醒等待中的 continuation
+    private enum WaitState {
+        case idle
+        case waiting(CheckedContinuation<Callback, Error>)
+        case finished(Result<Callback, Error>)
+    }
 
-    private init(listener: NWListener, port: UInt16) {
+    private let listener: NWListener
+    private(set) var port: UInt16 = 0
+
+    private let lock = NSLock()
+    private var waitState: WaitState = .idle
+
+    private init(listener: NWListener) {
         self.listener = listener
-        self.port = port
     }
 
     /// 在回环接口启动监听，返回系统分配的临时端口
@@ -55,7 +66,20 @@ final class GoogleOAuthLoopbackServer {
         do {
             listener = try NWListener(using: parameters)
         } catch {
+            Logger.auth.error("创建 loopback 监听器失败：\(String(describing: error), privacy: .public)")
             throw LoopbackError.startFailed(error.localizedDescription)
+        }
+
+        let server = GoogleOAuthLoopbackServer(listener: listener)
+
+        // 必须在 start 前设置连接处理器：Network.framework 对未设置
+        // newConnectionHandler 就启动的监听直接报 failed(Invalid argument)
+        listener.newConnectionHandler = { [weak server] connection in
+            guard let server else {
+                connection.cancel()
+                return
+            }
+            server.handle(connection)
         }
 
         let port: UInt16 = try await withCheckedThrowingContinuation { continuation in
@@ -68,6 +92,7 @@ final class GoogleOAuthLoopbackServer {
                     continuation.resume(returning: listener.port?.rawValue ?? 0)
                 case .failed(let error):
                     didResume = true
+                    Logger.auth.error("loopback 监听启动失败：\(String(describing: error), privacy: .public)")
                     continuation.resume(throwing: LoopbackError.startFailed(error.localizedDescription))
                 default:
                     break
@@ -81,18 +106,16 @@ final class GoogleOAuthLoopbackServer {
             throw LoopbackError.startFailed("系统未分配可用端口")
         }
 
-        return GoogleOAuthLoopbackServer(listener: listener, port: port)
+        server.port = port
+        Logger.auth.info("loopback 回调服务已就绪，端口 \(port, privacy: .public)")
+        return server
     }
 
     /// 等待系统浏览器带着授权码（或错误）回调本地地址
     func waitForCallback(timeout: TimeInterval = 300) async throws -> Callback {
         try await withThrowingTaskGroup(of: Callback.self) { group in
-            group.addTask { [listener] in
-                try await withCheckedThrowingContinuation { continuation in
-                    listener.newConnectionHandler = { connection in
-                        Self.handle(connection, continuation: continuation)
-                    }
-                }
+            group.addTask {
+                try await self.nextCallback()
             }
             group.addTask {
                 try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
@@ -107,48 +130,110 @@ final class GoogleOAuthLoopbackServer {
         listener.cancel()
     }
 
-    private static func handle(_ connection: NWConnection, continuation: CheckedContinuation<Callback, Error>) {
+    /// 提前终止等待（例如用户关闭了授权窗口），唤醒 waitForCallback 并抛出取消
+    func cancelWaiting() {
+        resolve(.failure(CancellationError()))
+    }
+
+    // MARK: - 回调交付
+
+    private func nextCallback() async throws -> Callback {
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                lock.lock()
+                switch waitState {
+                case .finished(let result):
+                    waitState = .idle
+                    lock.unlock()
+                    continuation.resume(with: result)
+                case .idle:
+                    waitState = .waiting(continuation)
+                    lock.unlock()
+                case .waiting:
+                    lock.unlock()
+                    continuation.resume(throwing: LoopbackError.invalidCallback)
+                }
+            }
+        } onCancel: {
+            resolve(.failure(CancellationError()))
+        }
+    }
+
+    /// 连接结果的统一出口：有等待者则唤醒，否则暂存首个结果供稍后消费
+    private func resolve(_ result: Result<Callback, Error>) {
+        lock.lock()
+        switch waitState {
+        case .waiting(let continuation):
+            waitState = .idle
+            lock.unlock()
+            continuation.resume(with: result)
+        case .idle:
+            waitState = .finished(result)
+            lock.unlock()
+        case .finished:
+            lock.unlock()
+        }
+    }
+
+    // MARK: - HTTP 请求处理
+
+    private func handle(_ connection: NWConnection) {
         connection.stateUpdateHandler = { state in
             guard case .ready = state else { return }
-            connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) { data, _, _, _ in
+            connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) { [weak self] data, _, _, _ in
                 defer { connection.cancel() }
+                guard let self else { return }
 
                 guard let data, let rawRequest = String(data: data, encoding: .utf8) else {
-                    respond(on: connection, success: false)
-                    continuation.resume(throwing: LoopbackError.invalidCallback)
+                    Self.respond(on: connection, success: false)
                     return
                 }
 
-                switch parseCallback(from: rawRequest) {
-                case .success(let callback):
-                    respond(on: connection, success: true)
-                    continuation.resume(returning: callback)
-                case .failure(let error):
-                    respond(on: connection, success: false)
-                    continuation.resume(throwing: error)
+                switch Self.parseCallback(from: rawRequest) {
+                case .callback(let callback):
+                    Self.respond(on: connection, success: true)
+                    self.resolve(.success(callback))
+                case .oauthError(let error):
+                    Self.respond(on: connection, success: false)
+                    Logger.auth.error("授权回调解析失败：\(error.localizedDescription, privacy: .public)")
+                    self.resolve(.failure(error))
+                case .unrelated:
+                    Self.respond(on: connection, success: false)
                 }
             }
         }
         connection.start(queue: .main)
     }
 
-    private static func parseCallback(from rawRequest: String) -> Result<Callback, LoopbackError> {
+    /// 回调请求的解析结果；unrelated 表示与授权无关的请求（如 favicon），
+    /// 应答后忽略即可，不能让它抢先占用回调结果
+    private enum ParseOutcome {
+        case callback(Callback)
+        case oauthError(LoopbackError)
+        case unrelated
+    }
+
+    private static func parseCallback(from rawRequest: String) -> ParseOutcome {
         guard let requestLine = rawRequest.components(separatedBy: "\r\n").first,
               let path = requestLine.split(separator: " ", omittingEmptySubsequences: true).dropFirst().first,
               let components = URLComponents(string: "http://127.0.0.1\(path)") else {
-            return .failure(.invalidCallback)
+            return .unrelated
+        }
+
+        guard components.path == GoogleOAuthConfig.redirectPath else {
+            return .unrelated
         }
 
         if let errorValue = components.queryItems?.first(where: { $0.name == "error" })?.value {
-            return .failure(.oauthDenied(errorValue))
+            return .oauthError(.oauthDenied(errorValue))
         }
 
         guard let code = components.queryItems?.first(where: { $0.name == "code" })?.value else {
-            return .failure(.invalidCallback)
+            return .oauthError(.invalidCallback)
         }
 
         let state = components.queryItems?.first(where: { $0.name == "state" })?.value
-        return .success(Callback(code: code, state: state))
+        return .callback(Callback(code: code, state: state))
     }
 
     private static func respond(on connection: NWConnection, success: Bool) {

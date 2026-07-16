@@ -29,8 +29,10 @@ enum GoogleOAuthConfig {
     /// Google 已废弃 Desktop 类型 client 的自定义 URL Scheme 重定向方案
     /// （"Custom URI schemes are no longer supported due to the risk of app impersonation"），
     /// 现在要求使用 http://127.0.0.1:{port} 接收系统浏览器的授权回调。
+    static let redirectPath = "/oauth2redirect"
+
     static func redirectUri(port: UInt16) -> String {
-        "http://127.0.0.1:\(port)/oauth2redirect"
+        "http://127.0.0.1:\(port)\(redirectPath)"
     }
 
     /// OAuth scopes requested

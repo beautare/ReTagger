@@ -146,7 +146,9 @@ struct LoginView: View {
                 errorMessage = nil
             }
             do {
-                try await authService.signInWithGoogle()
+                try await authService.signInWithGoogle(localization: localizationManager)
+            } catch is CancellationError {
+                // 用户主动关闭授权面板，静默复位（与 Apple 登录忽略取消一致）
             } catch {
                 await MainActor.run {
                     oauthErrorMessage = friendlyMessage(from: error)

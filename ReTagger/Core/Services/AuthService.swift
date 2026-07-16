@@ -340,12 +340,14 @@ class AuthService: AuthTokenProviding, ObservableObject {
         
     // MARK: - Google OAuth (Client-Side PKCE, loopback redirect)
 
-    /// 发起 Google 登录：起本地 loopback 回调服务、用系统浏览器打开授权页、
-    /// 等待授权码回调后与后端换取登录态。
+    /// 发起 Google 登录：起本地 loopback 回调服务、在应用内的授权窗口
+    /// （WKWebView）打开授权页、等待授权码回调后与后端换取登录态。
     ///
-    /// Google 已废弃 Desktop 类型 client 的自定义 URL Scheme 重定向，要求
-    /// 原生应用改用 loopback 地址 + 系统浏览器（而非内嵌 WebView）完成授权。
-    func signInWithGoogle() async throws {
+    /// Google 已废弃 Desktop 类型 client 的自定义 URL Scheme 重定向，
+    /// 重定向必须走 loopback 地址；授权页则沿用应用内窗口承载，
+    /// 避免把用户带离 ReTagger（macOS 上 ASWebAuthenticationSession
+    /// 会移交系统默认浏览器，不满足此要求）。
+    func signInWithGoogle(localization: LocalizationManager) async throws {
         let server = try await GoogleOAuthLoopbackServer.start()
         defer { server.stop() }
 
@@ -362,8 +364,13 @@ class AuthService: AuthTokenProviding, ObservableObject {
             throw ReTaggerError.networkError("Failed to build Google OAuth URL")
         }
 
-        guard NSWorkspace.shared.open(url) else {
-            throw ReTaggerError.networkError("无法打开系统浏览器完成 Google 登录")
+        await MainActor.run {
+            AuthWindowManager.shared.showAuthWindow(url: url, localization: localization) { [weak server] in
+                server?.cancelWaiting()
+            }
+        }
+        defer {
+            Task { @MainActor in AuthWindowManager.shared.close() }
         }
 
         let callback = try await server.waitForCallback()

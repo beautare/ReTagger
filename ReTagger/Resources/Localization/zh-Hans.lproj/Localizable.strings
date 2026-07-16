@@ -443,6 +443,7 @@
 "settings.logs.title" = "运行日志";
 "settings.logs.enable_toggle" = "显示运行日志";
 "settings.logs.refresh_button" = "刷新";
+"settings.logs.copy_button" = "拷贝全部日志";
 "settings.logs.disabled_hint" = "开启上方开关后可查看应用运行日志";
 
 /* Settings Update Tab */

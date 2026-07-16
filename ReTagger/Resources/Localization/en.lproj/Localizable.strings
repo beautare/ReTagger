@@ -442,6 +442,7 @@
 "settings.logs.title" = "Activity Logs";
 "settings.logs.enable_toggle" = "Show Activity Logs";
 "settings.logs.refresh_button" = "Refresh";
+"settings.logs.copy_button" = "Copy All Logs";
 "settings.logs.disabled_hint" = "Turn on the switch above to view activity logs";
 
 /* Settings Update Tab */

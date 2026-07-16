@@ -446,14 +446,28 @@ struct SettingsView: View {
     
     private var diagnosticsTab: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-            HStack {
+            HStack(spacing: DesignSystem.Spacing.sm) {
                 Text(localizationManager.string("settings.logs.title"))
                     .font(DesignSystem.Typography.title3)
-                Spacer()
                 Toggle(localizationManager.string("settings.logs.enable_toggle"), isOn: binding($coordinator.settings.diagnosticsLoggingEnabled))
-                Button(localizationManager.string("settings.logs.refresh_button")) {
-                    refreshDiagnosticsLog()
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    .labelsHidden()
+                    .help(localizationManager.string("settings.logs.enable_toggle"))
+                Spacer()
+                Button {
+                    copyDiagnosticsLog()
+                } label: {
+                    Image(systemName: "doc.on.doc")
                 }
+                .help(localizationManager.string("settings.logs.copy_button"))
+                .disabled(!coordinator.settings.diagnosticsLoggingEnabled || diagnosticsLogEntries.isEmpty)
+                Button {
+                    refreshDiagnosticsLog()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .help(localizationManager.string("settings.logs.refresh_button"))
                 .disabled(!coordinator.settings.diagnosticsLoggingEnabled)
             }
 
@@ -527,6 +541,16 @@ struct SettingsView: View {
                 diagnosticsLogEntries = entries
             }
         }
+    }
+
+    private func copyDiagnosticsLog() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let text = diagnosticsLogEntries
+            .map { "\(formatter.string(from: $0.timestamp)) [\($0.category)] \($0.message)" }
+            .joined(separator: "\n")
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
     }
     
     // MARK: - Helpers
