@@ -168,7 +168,8 @@ final class PlaybackQueueManager {
             return .notFound
         }
 
-        let wasCurrent = currentTrack()?.id == track.id
+        let currentID = currentTrack()?.id
+        let wasCurrent = currentID == track.id
 
         if let index = orderedQueue.firstIndex(where: { $0.id == track.id }) {
             orderedQueue.remove(at: index)
@@ -198,8 +199,8 @@ final class PlaybackQueueManager {
             return .currentChanged(currentTrack())
         }
 
-        if let current = currentTrack(),
-           let index = queue.firstIndex(where: { $0.id == current.id }) {
+        if let currentID,
+           let index = queue.firstIndex(where: { $0.id == currentID }) {
             currentIndex = index
         }
         trimHistory()

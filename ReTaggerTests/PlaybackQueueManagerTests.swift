@@ -75,6 +75,24 @@ final class PlaybackQueueManagerTests: XCTestCase {
         XCTAssertEqual(manager.currentTrack()?.id, items[2].id)
     }
 
+    func testRemovingTrackAboveCurrentKeepsCurrentTrackUnchanged() {
+        let items = makeSampleItems(count: 4)
+        let manager = PlaybackQueueManager(order: .sequential)
+        manager.load(queue: items, startAt: items[1], order: .sequential)
+
+        XCTAssertEqual(manager.currentTrack()?.id, items[1].id)
+
+        let result = manager.remove(items[0])
+        switch result {
+        case .removed:
+            break
+        default:
+            XCTFail("Expected removed result")
+        }
+        XCTAssertEqual(manager.currentTrack()?.id, items[1].id)
+        XCTAssertEqual(manager.queueSnapshot().map(\.id), [items[1], items[2], items[3]].map(\.id))
+    }
+
     // MARK: - Helpers
 
     private func makeSampleItems(count: Int) -> [AudioMetadata] {
