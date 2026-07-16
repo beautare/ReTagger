@@ -479,6 +479,8 @@ struct AppSettings: Codable {
     var selectedSettingsTab: Int? = 0
     /// 曲目表格文字大小档位（Cmd+/Cmd-/Cmd0 与设置页共用）
     var metadataTableFontScale: MetadataTableFontScale = .medium
+    /// 是否在设置的诊断 Tab 中展示运行日志（默认关闭，避免默认查询 OSLogStore）
+    var diagnosticsLoggingEnabled: Bool = false
 
     // MARK: - 火焰/频谱效果配置
 

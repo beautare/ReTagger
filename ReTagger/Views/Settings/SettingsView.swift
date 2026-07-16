@@ -450,36 +450,51 @@ struct SettingsView: View {
                 Text(localizationManager.string("settings.logs.title"))
                     .font(DesignSystem.Typography.title3)
                 Spacer()
+                Toggle(localizationManager.string("settings.logs.enable_toggle"), isOn: binding($coordinator.settings.diagnosticsLoggingEnabled))
                 Button(localizationManager.string("settings.logs.refresh_button")) {
                     refreshDiagnosticsLog()
                 }
+                .disabled(!coordinator.settings.diagnosticsLoggingEnabled)
             }
 
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                    ForEach(diagnosticsLogEntries) { entry in
-                        HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
-                            Text(logTimestamp(entry.timestamp))
-                                .font(DesignSystem.Typography.caption2)
-                                .foregroundColor(.secondary)
-                                .frame(width: 80, alignment: .leading)
-                            Text(entry.category)
-                                .font(DesignSystem.Typography.caption2)
-                                .foregroundColor(color(for: entry.level))
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .frame(width: 72, alignment: .leading)
-                            Text(entry.message)
-                                .font(DesignSystem.Typography.caption)
-                                .foregroundColor(DesignSystem.Colors.textPrimary)
-                                .textSelection(.enabled)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+            Group {
+                if coordinator.settings.diagnosticsLoggingEnabled {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                            ForEach(diagnosticsLogEntries) { entry in
+                                HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
+                                    Text(logTimestamp(entry.timestamp))
+                                        .font(DesignSystem.Typography.caption2)
+                                        .foregroundColor(.secondary)
+                                        .frame(width: 80, alignment: .leading)
+                                    Text(entry.category)
+                                        .font(DesignSystem.Typography.caption2)
+                                        .foregroundColor(color(for: entry.level))
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
+                                        .frame(width: 72, alignment: .leading)
+                                    Text(entry.message)
+                                        .font(DesignSystem.Typography.caption)
+                                        .foregroundColor(DesignSystem.Colors.textPrimary)
+                                        .textSelection(.enabled)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .padding(.vertical, 2)
+                            }
                         }
-                        .padding(.vertical, 2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(DesignSystem.Spacing.xs)
                     }
+                } else {
+                    VStack {
+                        Spacer()
+                        Text(localizationManager.string("settings.logs.disabled_hint"))
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(DesignSystem.Spacing.xs)
             }
             .background(
                 RoundedRectangle(cornerRadius: 8)
@@ -491,11 +506,27 @@ struct SettingsView: View {
             )
         }
         .padding(.top, 4)
-        .onAppear { refreshDiagnosticsLog() }
+        .onAppear {
+            if coordinator.settings.diagnosticsLoggingEnabled {
+                refreshDiagnosticsLog()
+            }
+        }
+        .onChange(of: coordinator.settings.diagnosticsLoggingEnabled) { enabled in
+            if enabled {
+                refreshDiagnosticsLog()
+            } else {
+                diagnosticsLogEntries = []
+            }
+        }
     }
 
     private func refreshDiagnosticsLog() {
-        diagnosticsLogEntries = DiagnosticsLogStore.fetchRecentEntries()
+        Task.detached(priority: .userInitiated) {
+            let entries = DiagnosticsLogStore.fetchRecentEntries()
+            await MainActor.run {
+                diagnosticsLogEntries = entries
+            }
+        }
     }
     
     // MARK: - Helpers

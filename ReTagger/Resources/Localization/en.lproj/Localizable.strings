@@ -440,7 +440,9 @@
 
 /* Settings Logs Tab */
 "settings.logs.title" = "Activity Logs";
+"settings.logs.enable_toggle" = "Show Activity Logs";
 "settings.logs.refresh_button" = "Refresh";
+"settings.logs.disabled_hint" = "Turn on the switch above to view activity logs";
 
 /* Settings Update Tab */
 "settings.update.auto_check" = "Auto-check for updates";
