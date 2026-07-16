@@ -14,6 +14,8 @@ enum AuthStorageKeys {
     static let userToken = "vip.retagger.userToken"
     static let lastLoginEmail = "vip.retagger.lastLoginEmail"
     static let cachedUser = "vip.retagger.cachedUser"
+    /// 非敏感标记（UserDefaults），记录本机是否曾经完成过登录
+    static let hasLoggedInBefore = "vip.retagger.hasLoggedInBefore"
 }
 
 @MainActor
@@ -46,7 +48,8 @@ class AuthService: AuthTokenProviding, ObservableObject {
             isAuthenticated = token != nil
             if let token = token {
                 KeychainStore.setString(token, forKey: AuthStorageKeys.userToken)
-            } else {
+                UserDefaults.standard.set(true, forKey: AuthStorageKeys.hasLoggedInBefore)
+            } else if Self.hasAuthenticatedBefore {
                 KeychainStore.removeValue(forKey: AuthStorageKeys.userToken)
             }
         }
@@ -67,9 +70,22 @@ class AuthService: AuthTokenProviding, ObservableObject {
         self.isAuthenticated = self.token != nil
     }
 
+    /// 本机是否曾经完成过登录：任一信号存在即视为"登录过"，
+    /// 涵盖历史版本遗留的明文数据，避免老用户升级后被误判为从未登录。
+    /// 全新安装、从未登录的用户此项为 false，从而跳过启动时的钥匙串读取，
+    /// 不会为了"看看有没有数据"而弹出授权提示。
+    private static var hasAuthenticatedBefore: Bool {
+        if UserDefaults.standard.bool(forKey: AuthStorageKeys.hasLoggedInBefore) { return true }
+        if UserDefaults.standard.string(forKey: AuthStorageKeys.lastLoginEmail) != nil { return true }
+        if UserDefaults.standard.string(forKey: AuthStorageKeys.userToken) != nil { return true }
+        if UserDefaults.standard.data(forKey: AuthStorageKeys.cachedUser) != nil { return true }
+        return false
+    }
+
     /// 从 Keychain 读取缓存的用户资料；若发现历史版本遗留在 UserDefaults 的明文数据，
     /// 迁移到 Keychain 并清除旧存储（与 token 的处理一致）。
     private static func loadPersistedUser() -> UserResponse? {
+        guard hasAuthenticatedBefore else { return nil }
         if let json = KeychainStore.string(forKey: AuthStorageKeys.cachedUser),
            let data = json.data(using: .utf8),
            let cachedUser = try? JSONDecoder().decode(UserResponse.self, from: data) {
@@ -91,6 +107,7 @@ class AuthService: AuthTokenProviding, ObservableObject {
     /// 从 Keychain 读取持久化 token；若发现历史版本遗留在 UserDefaults 的明文 token，
     /// 迁移到 Keychain 并清除旧存储。
     private static func loadPersistedToken() -> String? {
+        guard hasAuthenticatedBefore else { return nil }
         if let token = KeychainStore.string(forKey: AuthStorageKeys.userToken) {
             return token
         }
@@ -499,7 +516,7 @@ private extension AuthService {
            let data = try? JSONEncoder().encode(user),
            let json = String(data: data, encoding: .utf8) {
             KeychainStore.setString(json, forKey: AuthStorageKeys.cachedUser)
-        } else {
+        } else if Self.hasAuthenticatedBefore {
             KeychainStore.removeValue(forKey: AuthStorageKeys.cachedUser)
         }
     }
