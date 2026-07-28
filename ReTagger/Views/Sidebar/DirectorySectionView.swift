@@ -32,6 +32,8 @@ struct DirectorySectionView: View, Equatable {
     let onRemoveRecentDirectory: (RecentDirectoryEntry) -> Void
     let onClearRecentDirectories: () -> Void
     let onReset: () -> Void
+    /// 折叠 / 展开侧边栏
+    let onToggleSidebar: () -> Void
     /// 侧边栏尺寸等级，按阈值驱动视图布局
     var sidebarSizeClass: DesignSystem.Layout.SidebarSizeClass = .regular
     @State private var isHistoryPopoverPresented = false
@@ -62,6 +64,17 @@ struct DirectorySectionView: View, Equatable {
             .foregroundColor(DesignSystem.Colors.primary)
     }
 
+    /// 折叠 / 展开侧边栏按钮，与 ⌘⌃S 等效
+    private func toggleSidebarButton(iconSize: CGFloat) -> some View {
+        Button(action: onToggleSidebar) {
+            Image(systemName: "sidebar.left")
+                .font(.system(size: iconSize))
+                .foregroundColor(DesignSystem.Colors.primary)
+        }
+        .buttonStyle(.plain)
+        .help(localizationManager.string(isMini ? "action.expand_sidebar" : "action.collapse_sidebar"))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if isMini {
@@ -85,7 +98,9 @@ struct DirectorySectionView: View, Equatable {
             
             Divider()
                 .padding(.horizontal, DesignSystem.Spacing.xs)
-            
+
+            toggleSidebarButton(iconSize: 16)
+
             Button(action: onAddDirectory) {
                 Image(systemName: "plus.circle")
                     .font(.system(size: 16))
@@ -236,6 +251,8 @@ struct DirectorySectionView: View, Equatable {
                 .popover(isPresented: $isHistoryPopoverPresented, arrowEdge: .bottom) {
                     historyPopoverContent
                 }
+
+                toggleSidebarButton(iconSize: 14)
             }
         }
         .padding(.horizontal, DesignSystem.Spacing.md)
@@ -529,7 +546,8 @@ private struct HistoryRowButtonStyle: ButtonStyle {
         onSelectRecentDirectory: { _ in },
         onRemoveRecentDirectory: { _ in },
         onClearRecentDirectories: {},
-        onReset: {}
+        onReset: {},
+        onToggleSidebar: {}
     )
     .environmentObject(PlaybackController(service: AudioPlaybackService(), defaultOrder: .sequential))
     .environmentObject(LocalizationManager(language: .simplifiedChinese))

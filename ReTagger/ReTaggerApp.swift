@@ -119,6 +119,15 @@ struct ReTaggerApp: App {
             }
             CommandGroup(after: .toolbar) {
                 Button(action: {
+                    NotificationCenter.default.post(name: NSNotification.Name("ToggleSidebar"), object: nil)
+                }) {
+                    Label(localizationManager.string("menu.toggle_sidebar"), systemImage: "sidebar.left")
+                }
+                .keyboardShortcut("s", modifiers: [.command, .control])
+
+                Divider()
+
+                Button(action: {
                     coordinator.adjustMetadataTableFontScale(by: 1)
                 }) {
                     Label(localizationManager.string("menu.font_size.increase"), systemImage: "textformat.size.larger")

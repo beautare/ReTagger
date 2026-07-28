@@ -37,6 +37,8 @@
 "action.history" = "History";
 "action.remove_directory" = "Remove";
 "action.close_all" = "Close all directories";
+"action.collapse_sidebar" = "Collapse sidebar";
+"action.expand_sidebar" = "Expand sidebar";
 "action.undo" = "Undo";
 "action.undo_short" = "Undo";
 "action.write_short" = "Write";
@@ -471,6 +473,7 @@
 "menu.font_size.increase" = "Increase Font Size";
 "menu.font_size.decrease" = "Decrease Font Size";
 "menu.font_size.reset" = "Reset Font Size";
+"menu.toggle_sidebar" = "Toggle Sidebar";
 
 /* Settings Merged Tabs & Groups */
 "settings.tab.general_update" = "General & Updates";

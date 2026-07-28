@@ -37,6 +37,8 @@
 "action.history" = "历史目录";
 "action.remove_directory" = "移除";
 "action.close_all" = "关闭所有目录";
+"action.collapse_sidebar" = "折叠侧边栏";
+"action.expand_sidebar" = "展开侧边栏";
 "action.undo" = "撤销";
 "action.undo_short" = "撤回";
 "action.write_short" = "修正";
@@ -472,6 +474,7 @@
 "menu.font_size.increase" = "放大文字";
 "menu.font_size.decrease" = "缩小文字";
 "menu.font_size.reset" = "恢复默认文字大小";
+"menu.toggle_sidebar" = "折叠/展开侧边栏";
 
 /* Settings Merged Tabs & Groups */
 "settings.tab.general_update" = "通用与更新";

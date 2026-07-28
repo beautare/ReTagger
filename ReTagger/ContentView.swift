@@ -27,6 +27,10 @@ struct ContentView: View {
     @State private var handledScanRequestID: UUID?
     /// 是否已经设置了默认窗口尺寸（兼容 macOS 12.4）
     @State private var hasSetDefaultSize = false
+    /// 侧边栏是否折叠为迷你列，跨启动保持
+    @AppStorage("sidebar.isCollapsed") private var isSidebarCollapsed = false
+    /// 折叠动画期间锁定的侧边栏内容布局宽度，为 nil 时跟随实际宽度
+    @State private var sidebarLayoutWidth: CGFloat?
 
     private var effectiveDirectory: URL? {
         selectedDirectory ?? coordinator.selectedDirectory
@@ -171,28 +175,39 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ShowSettings"))) { _ in
             showSettings = true
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ToggleSidebar"))) { _ in
+            toggleSidebar()
+        }
     }
 
     private var contentLayout: some View {
         NativeSidebarSplitView(
             configuration: .init(
                 sidebarMinWidth: DesignSystem.Layout.sidebarMinWidth,
-                sidebarMaxWidthFraction: 0.4,
                 sidebarDefaultFraction: 0.25, // 左侧侧边栏默认占用总宽度的 25%
                 sidebarMiniWidth: DesignSystem.Layout.sidebarMiniWidth,
-                sidebarCollapseThreshold: DesignSystem.Layout.sidebarCollapseThreshold,
+                detailMinWidth: detailColumnMinimumWidth,
                 dividerWidth: DesignSystem.Layout.navigationDividerEstimate
             ),
+            isCollapsed: isSidebarCollapsed,
+            setLayoutWidth: { sidebarLayoutWidth = $0 },
             sidebar: sidebar,
             detail: detailColumn
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         )
     }
 
+    /// 切换侧边栏折叠状态，动画与宽度记忆由 NativeSidebarSplitView 负责
+    private func toggleSidebar() {
+        isSidebarCollapsed.toggle()
+    }
+
     private var sidebar: some View {
         GeometryReader { proxy in
-            let sidebarSizeClass = DesignSystem.Layout.SidebarSizeClass.from(width: proxy.size.width)
-            
+            // 折叠动画期间使用锁定宽度排版，内容不随容器逐帧重排，动画才顺滑
+            let layoutWidth = sidebarLayoutWidth ?? proxy.size.width
+            let sidebarSizeClass = DesignSystem.Layout.SidebarSizeClass.from(width: layoutWidth)
+
             VStack(spacing: 0) {
                 DirectorySectionView(
                     rootNodes: rootNodes,
@@ -209,6 +224,7 @@ struct ContentView: View {
                         coordinator.clearRecentDirectories()
                     },
                     onReset: resetApp,
+                    onToggleSidebar: toggleSidebar,
                     sidebarSizeClass: sidebarSizeClass
                 )
                 .equatable()
@@ -224,13 +240,14 @@ struct ContentView: View {
                 )
                 .equatable()
             }
-            .frame(width: proxy.size.width, height: proxy.size.height)
+            .frame(width: layoutWidth, height: proxy.size.height, alignment: .topLeading)
             .simultaneousGesture(
                 TapGesture().onEnded {
                     coordinator.playbackController.dismissQueuePanelIfNeeded()
                 }
             )
         }
+        .clipped()
     }
 
     private var detailColumn: some View {

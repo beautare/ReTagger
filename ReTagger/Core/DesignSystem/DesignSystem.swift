@@ -146,7 +146,9 @@ enum DesignSystem {
     /// 布局常量
     enum Layout {
         // 侧边栏
-        static let sidebarMinWidth: CGFloat = 250
+        /// 展开态最小宽度。下限由 header 的排布决定（padding 32 + logo 24 + 间隔 12 + 四个图标按钮 104 ≈ 172），
+        /// 再往窄只能靠折叠成迷你列，而折叠有独立入口，不该占用拖动区间。
+        static let sidebarMinWidth: CGFloat = 180
         static let sidebarIdealWidth: CGFloat = 280
         /// 侧边栏绝对最大宽度上限
         static let sidebarAbsoluteMax: CGFloat = 480
@@ -154,8 +156,6 @@ enum DesignSystem {
         static let sidebarMaxWidthRatio: CGFloat = 0.35
         /// 迷你列宽度
         static let sidebarMiniWidth: CGFloat = 56
-        /// 拖动宽度低于此阈值时自动折叠为迷你列
-        static let sidebarCollapseThreshold: CGFloat = 200
         /// 侧边栏宽度小于此值时，标准模式进入紧凑状态（隐藏次要文字）
         static let sidebarCompactThreshold: CGFloat = 280
 
