@@ -108,10 +108,15 @@ final class StoreKitService: ObservableObject {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
                 // 发送到后端验证并充值，传递原始 JWS 字符串
-                await verifyWithServer(transaction: transaction, signedData: verification.jwsRepresentation)
-                // 后端确认成功后才 finish
-                await transaction.finish()
-                Logger.auth.info("购买成功: \(product.id)")
+                let verified = await verifyWithServer(transaction: transaction, signedData: verification.jwsRepresentation)
+                if verified {
+                    // 后端确认成功后才 finish，避免后端失败时丢单
+                    await transaction.finish()
+                    Logger.auth.info("购买成功: \(product.id)")
+                } else {
+                    // 交易保持未完成状态，等待「同步未到账订单」重试
+                    await checkUnfinishedTransactions()
+                }
 
             case .userCancelled:
                 Logger.auth.info("用户取消购买")
@@ -165,8 +170,10 @@ final class StoreKitService: ObservableObject {
             for await result in Transaction.updates {
                 do {
                     let transaction = try StoreKitService.checkVerifiedStatic(result)
-                    await self?.verifyWithServer(transaction: transaction, signedData: result.jwsRepresentation)
-                    await transaction.finish()
+                    let verified = await self?.verifyWithServer(transaction: transaction, signedData: result.jwsRepresentation) ?? false
+                    if verified {
+                        await transaction.finish()
+                    }
                 } catch {
                     logger.error("处理交易更新失败: \(error.localizedDescription)")
                 }
@@ -193,10 +200,12 @@ final class StoreKitService: ObservableObject {
     /// - Parameters:
     ///   - transaction: 已验证的交易对象
     ///   - signedData: VerificationResult 的原始 JWS 字符串
-    private func verifyWithServer(transaction: Transaction, signedData: String) async {
+    /// - Returns: 后端是否确认成功（含幂等重复），仅当返回 true 时才应 finish 交易
+    @discardableResult
+    private func verifyWithServer(transaction: Transaction, signedData: String) async -> Bool {
         guard let networkService = networkService else {
             Logger.auth.error("NetworkService 未初始化，无法验证交易")
-            return
+            return false
         }
 
         let request = IapVerifyRequest(
@@ -221,9 +230,11 @@ final class StoreKitService: ObservableObject {
             } else {
                 Logger.auth.info("后端验证充值成功，新增 \(response.data.pointsAdded ?? 0) 点")
             }
+            return true
         } catch {
             Logger.auth.error("后端验证交易失败: \(error.localizedDescription)")
             purchaseError = "充值验证失败，请稍后在「恢复购买」中重试"
+            return false
         }
     }
 }

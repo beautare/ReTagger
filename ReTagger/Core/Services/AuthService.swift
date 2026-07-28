@@ -72,8 +72,7 @@ class AuthService: AuthTokenProviding, ObservableObject {
 
     /// 本机是否曾经完成过登录：任一信号存在即视为"登录过"，
     /// 涵盖历史版本遗留的明文数据，避免老用户升级后被误判为从未登录。
-    /// 全新安装、从未登录的用户此项为 false，从而跳过启动时的钥匙串读取，
-    /// 不会为了"看看有没有数据"而弹出授权提示。
+    /// 全新安装、从未登录的用户此项为 false，从而跳过启动时无谓的钥匙串读取。
     private static var hasAuthenticatedBefore: Bool {
         if UserDefaults.standard.bool(forKey: AuthStorageKeys.hasLoggedInBefore) { return true }
         if UserDefaults.standard.string(forKey: AuthStorageKeys.lastLoginEmail) != nil { return true }
@@ -106,6 +105,10 @@ class AuthService: AuthTokenProviding, ObservableObject {
 
     /// 从 Keychain 读取持久化 token；若发现历史版本遗留在 UserDefaults 的明文 token，
     /// 迁移到 Keychain 并清除旧存储。
+    ///
+    /// KeychainStore 改用 data protection keychain 后，旧版写入 login keychain 的条目不再可见，
+    /// 且刻意不做回落读取——那一次回落读取正是"允许访问钥匙串"弹窗的来源。代价是升级后需要
+    /// 重新登录一次，换来此后任何渠道、任何证书下都不再出现钥匙串授权提示。
     private static func loadPersistedToken() -> String? {
         guard hasAuthenticatedBefore else { return nil }
         if let token = KeychainStore.string(forKey: AuthStorageKeys.userToken) {

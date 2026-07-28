@@ -21,6 +21,7 @@ ReTagger 面向音乐制作与收藏场景，利用 AI 协助批量整理 MP3、
 - 左侧侧边栏顶部以"添加目录"图标按钮触发目录选择，旁侧"历史"菜单展示最近 50 条目录记录，列表仅显示完整路径并支持滚动，依赖 `AppCoordinator.recentDirectories` 同步状态。
 - `Features/DirectorySelection` 中"选择目录"按钮下方仅展示最近 5 个访问记录（路径形式），数据持久化至 `AppSettings.recentDirectories`。
 - **沙盒权限管理**：所有目录扫描统一由 `DirectorySelectionView.performScan` 执行，该方法内通过 `AppCoordinator.activateSecurityScope` 激活并持久化沙盒访问权限。权限持续保持至用户切换目录（调用 `reset` 释放旧权限），保证播放、元数据读写等后续操作具备沙盒授权。
+- **凭据存储**：登录 token 与缓存用户资料统一经 `KeychainStore` 落在 data protection keychain（`kSecUseDataProtectionKeychain`），授权依据是签名的 keychain access group 而非 login keychain 的 ACL，因此换渠道或换证书都不会弹出"允许访问钥匙串"对话框。access group 取 `L2GSNW7RA2.vip.retagger.macapp`：App Store 渠道由描述文件的 `com.apple.application-identifier` 提供，直发渠道由 `ReTagger-Direct.entitlements` 的 `keychain-access-groups` 显式声明，两者必须保持一致。不得回落读取旧 login keychain 条目——那正是弹窗来源。
 
 
 ## 架构原则

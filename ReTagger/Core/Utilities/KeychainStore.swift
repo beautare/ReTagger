@@ -11,6 +11,12 @@ import OSLog
 
 /// 基于 Keychain（kSecClassGenericPassword）的字符串存取工具，
 /// 用于替代 UserDefaults 保存登录 token 等敏感凭据。
+///
+/// 统一走 data protection keychain（`kSecUseDataProtectionKeychain`）：访问授权由签名中的
+/// keychain access group 决定，而非 login keychain 的 ACL 校验，因此换渠道（App Store /
+/// 直发 DMG）、换开发者证书都不会再弹出"允许访问钥匙串"对话框。access group 两个渠道取值一致
+/// （App Store 由 `com.apple.application-identifier` 提供，直发由 ReTagger-Direct.entitlements
+/// 的 `keychain-access-groups` 提供），凭据可跨渠道沿用。
 enum KeychainStore {
     private static let service = "vip.retagger.credentials"
 
@@ -59,7 +65,8 @@ enum KeychainStore {
         [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: key
+            kSecAttrAccount as String: key,
+            kSecUseDataProtectionKeychain as String: true
         ]
     }
 }
