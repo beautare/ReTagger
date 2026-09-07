@@ -59,23 +59,27 @@ if (fs.existsSync(PBXPROJ_PATH)) {
   console.log(`🛠️  project.pbxproj: MARKETING_VERSION → ${newVersion}, CURRENT_PROJECT_VERSION → ${newBuild}`);
 }
 
-// 3. 准备 metadata/version/<newVersion>
+// 3. 准备 metadata/version/<newVersion>（从已有有效版本复制模板）
 const newMetaDir = path.join(METADATA_DIR, 'version', newVersion);
-if (!fs.existsSync(newMetaDir)) {
-  fs.mkdirSync(newMetaDir, { recursive: true });
-  // 查找最新可用版本元数据进行复制
-  const versionParent = path.join(METADATA_DIR, 'version');
-  if (fs.existsSync(versionParent)) {
-    const existingVersions = fs.readdirSync(versionParent).filter(d => !d.startsWith('.'));
-    if (existingVersions.length > 0) {
-      existingVersions.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-      const baseVersion = existingVersions[existingVersions.length - 1];
-      const baseDir = path.join(versionParent, baseVersion);
-      for (const f of fs.readdirSync(baseDir)) {
+const versionParent = path.join(METADATA_DIR, 'version');
+if (fs.existsSync(versionParent)) {
+  const existingVersions = fs.readdirSync(versionParent).filter(d => {
+    if (d.startsWith('.') || d === newVersion) return false;
+    const dirPath = path.join(versionParent, d);
+    return fs.statSync(dirPath).isDirectory() && fs.readdirSync(dirPath).some(f => f.endsWith('.json'));
+  });
+
+  if (existingVersions.length > 0) {
+    existingVersions.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    const baseVersion = existingVersions[existingVersions.length - 1];
+    fs.mkdirSync(newMetaDir, { recursive: true });
+    const baseDir = path.join(versionParent, baseVersion);
+    for (const f of fs.readdirSync(baseDir)) {
+      if (f.endsWith('.json')) {
         fs.copyFileSync(path.join(baseDir, f), path.join(newMetaDir, f));
       }
-      console.log(`📄 已从 ${baseVersion} 复制元数据模板至 metadata/version/${newVersion}`);
     }
+    console.log(`📄 已从 ${baseVersion} 复制元数据模板至 metadata/version/${newVersion}`);
   }
 }
 
