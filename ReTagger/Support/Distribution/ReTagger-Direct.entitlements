@@ -8,18 +8,10 @@
   不含 com.apple.developer.applesignin：Apple 明确不支持 Developer ID
   分发使用 Sign in with Apple（官方对 FB7645479 的回复为"行为符合预期"），
   Developer ID 描述文件永远不会包含该授权；直发版登录走邮箱 / Google。
-
-  keychain-access-groups 为 KeychainStore 的 data protection keychain 提供 access group。
-  App Store 渠道由描述文件注入的 com.apple.application-identifier 自动获得同名 group，
-  直发渠道无描述文件，需在此显式声明，否则钥匙串读写返回 errSecMissingEntitlement。
 -->
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
-	<key>keychain-access-groups</key>
-	<array>
-		<string>L2GSNW7RA2.vip.retagger.macapp</string>
-	</array>
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.network.server</key>

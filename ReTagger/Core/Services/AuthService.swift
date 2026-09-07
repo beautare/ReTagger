@@ -14,8 +14,6 @@ enum AuthStorageKeys {
     static let userToken = "vip.retagger.userToken"
     static let lastLoginEmail = "vip.retagger.lastLoginEmail"
     static let cachedUser = "vip.retagger.cachedUser"
-    /// 非敏感标记（UserDefaults），记录本机是否曾经完成过登录
-    static let hasLoggedInBefore = "vip.retagger.hasLoggedInBefore"
 }
 
 @MainActor
@@ -41,16 +39,13 @@ class AuthService: AuthTokenProviding, ObservableObject {
     private let deviceTokenManager: DeviceTokenManager
     weak var networkService: NetworkServiceProtocol?
     
-
-    
     private var token: String? {
         didSet {
             isAuthenticated = token != nil
             if let token = token {
-                KeychainStore.setString(token, forKey: AuthStorageKeys.userToken)
-                UserDefaults.standard.set(true, forKey: AuthStorageKeys.hasLoggedInBefore)
-            } else if Self.hasAuthenticatedBefore {
-                KeychainStore.removeValue(forKey: AuthStorageKeys.userToken)
+                UserDefaults.standard.set(token, forKey: AuthStorageKeys.userToken)
+            } else {
+                UserDefaults.standard.removeObject(forKey: AuthStorageKeys.userToken)
             }
         }
     }
@@ -70,57 +65,17 @@ class AuthService: AuthTokenProviding, ObservableObject {
         self.isAuthenticated = self.token != nil
     }
 
-    /// 本机是否曾经完成过登录：任一信号存在即视为"登录过"，
-    /// 涵盖历史版本遗留的明文数据，避免老用户升级后被误判为从未登录。
-    /// 全新安装、从未登录的用户此项为 false，从而跳过启动时无谓的钥匙串读取。
-    private static var hasAuthenticatedBefore: Bool {
-        if UserDefaults.standard.bool(forKey: AuthStorageKeys.hasLoggedInBefore) { return true }
-        if UserDefaults.standard.string(forKey: AuthStorageKeys.lastLoginEmail) != nil { return true }
-        if UserDefaults.standard.string(forKey: AuthStorageKeys.userToken) != nil { return true }
-        if UserDefaults.standard.data(forKey: AuthStorageKeys.cachedUser) != nil { return true }
-        return false
-    }
-
-    /// 从 Keychain 读取缓存的用户资料；若发现历史版本遗留在 UserDefaults 的明文数据，
-    /// 迁移到 Keychain 并清除旧存储（与 token 的处理一致）。
+    /// 从 UserDefaults 读取缓存的用户资料
     private static func loadPersistedUser() -> UserResponse? {
-        guard hasAuthenticatedBefore else { return nil }
-        if let json = KeychainStore.string(forKey: AuthStorageKeys.cachedUser),
-           let data = json.data(using: .utf8),
-           let cachedUser = try? JSONDecoder().decode(UserResponse.self, from: data) {
-            return cachedUser
+        guard let data = UserDefaults.standard.data(forKey: AuthStorageKeys.cachedUser) else {
+            return nil
         }
-        if let data = UserDefaults.standard.data(forKey: AuthStorageKeys.cachedUser) {
-            UserDefaults.standard.removeObject(forKey: AuthStorageKeys.cachedUser)
-            if let cachedUser = try? JSONDecoder().decode(UserResponse.self, from: data) {
-                if let json = String(data: data, encoding: .utf8) {
-                    KeychainStore.setString(json, forKey: AuthStorageKeys.cachedUser)
-                }
-                Logger.auth.info("已将缓存用户资料从 UserDefaults 迁移至 Keychain")
-                return cachedUser
-            }
-        }
-        return nil
+        return try? JSONDecoder().decode(UserResponse.self, from: data)
     }
 
-    /// 从 Keychain 读取持久化 token；若发现历史版本遗留在 UserDefaults 的明文 token，
-    /// 迁移到 Keychain 并清除旧存储。
-    ///
-    /// KeychainStore 改用 data protection keychain 后，旧版写入 login keychain 的条目不再可见，
-    /// 且刻意不做回落读取——那一次回落读取正是"允许访问钥匙串"弹窗的来源。代价是升级后需要
-    /// 重新登录一次，换来此后任何渠道、任何证书下都不再出现钥匙串授权提示。
+    /// 从 UserDefaults 读取持久化 token
     private static func loadPersistedToken() -> String? {
-        guard hasAuthenticatedBefore else { return nil }
-        if let token = KeychainStore.string(forKey: AuthStorageKeys.userToken) {
-            return token
-        }
-        if let legacyToken = UserDefaults.standard.string(forKey: AuthStorageKeys.userToken) {
-            KeychainStore.setString(legacyToken, forKey: AuthStorageKeys.userToken)
-            UserDefaults.standard.removeObject(forKey: AuthStorageKeys.userToken)
-            Logger.auth.info("已将登录 token 从 UserDefaults 迁移至 Keychain")
-            return legacyToken
-        }
-        return nil
+        UserDefaults.standard.string(forKey: AuthStorageKeys.userToken)
     }
 
     // MARK: - AuthTokenProviding
@@ -516,11 +471,10 @@ private extension AuthService {
 
     func persistCurrentUser(_ user: UserResponse?) {
         if let user,
-           let data = try? JSONEncoder().encode(user),
-           let json = String(data: data, encoding: .utf8) {
-            KeychainStore.setString(json, forKey: AuthStorageKeys.cachedUser)
-        } else if Self.hasAuthenticatedBefore {
-            KeychainStore.removeValue(forKey: AuthStorageKeys.cachedUser)
+           let data = try? JSONEncoder().encode(user) {
+            UserDefaults.standard.set(data, forKey: AuthStorageKeys.cachedUser)
+        } else {
+            UserDefaults.standard.removeObject(forKey: AuthStorageKeys.cachedUser)
         }
     }
 }

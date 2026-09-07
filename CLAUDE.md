@@ -20,7 +20,7 @@ ReTagger 是一款面向音乐工作者的 macOS SwiftUI 应用，用于批量�
 - 左侧侧边栏顶部的"添加目录"图标按钮需触发目录选择，右侧“历史”图标菜单滚动展示最近 50 个目录，仅以路径呈现，数据来源于 `AppCoordinator.recentDirectories`。
 - `Features/DirectorySelection` 中"选择目录"按钮下默认展示最近 5 个目录（仅路径可点击），依赖 `AppSettings.recentDirectories` 持久化。
 - **沙盒权限管理**：所有目录扫描的统一入口为 `DirectorySelectionView.performScan`，在该方法内通过 `AppCoordinator.activateSecurityScope` 激活并持久化权限。权限会一直保持直到下一次目录选择或调用 `reset` 方法释放旧权限，确保播放、元数据操作等后续流程不丢失沙盒授权。
-- **凭据存储**：登录 token 与缓存用户资料统一经 `KeychainStore` 落在 data protection keychain（`kSecUseDataProtectionKeychain`），授权依据是签名的 keychain access group 而非 login keychain 的 ACL，因此换渠道或换证书都不会弹出"允许访问钥匙串"对话框。access group 取 `L2GSNW7RA2.vip.retagger.macapp`：App Store 渠道由描述文件的 `com.apple.application-identifier` 提供，直发渠道由 `ReTagger-Direct.entitlements` 的 `keychain-access-groups` 显式声明，两者必须保持一致。不得回落读取旧 login keychain 条目——那正是弹窗来源。
+- **凭据存储**：登录 token 与缓存用户资料统一保存在沙盒保护的 `UserDefaults` 中，不再使用系统 Keychain，从根源上杜绝 macOS 钥匙串访问与密码授权弹窗。应用运行于 App Sandbox 隔离环境中，数据受到系统沙盒保护；不同渠道（App Store、直发 DMG、本地 Debug）行为保持一致，无需声明 `keychain-access-groups`。
 
 ## 发布渠道与自动更新
 - **双渠道分发**：App Store（Xcode Archive 手动提交，应用内更新由 `AppUpdateService` 检查并跳转商店）与 GitHub Release 直发（DMG + Sparkle 自动更新，`SparkleUpdaterService`）。

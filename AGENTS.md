@@ -21,7 +21,7 @@ ReTagger 面向音乐制作与收藏场景，利用 AI 协助批量整理 MP3、
 - 左侧侧边栏顶部以"添加目录"图标按钮触发目录选择，旁侧"历史"菜单展示最近 50 条目录记录，列表仅显示完整路径并支持滚动，依赖 `AppCoordinator.recentDirectories` 同步状态。
 - `Features/DirectorySelection` 中"选择目录"按钮下方仅展示最近 5 个访问记录（路径形式），数据持久化至 `AppSettings.recentDirectories`。
 - **沙盒权限管理**：所有目录扫描统一由 `DirectorySelectionView.performScan` 执行，该方法内通过 `AppCoordinator.activateSecurityScope` 激活并持久化沙盒访问权限。权限持续保持至用户切换目录（调用 `reset` 释放旧权限），保证播放、元数据读写等后续操作具备沙盒授权。
-- **凭据存储**：登录 token 与缓存用户资料统一经 `KeychainStore` 落在 data protection keychain（`kSecUseDataProtectionKeychain`），授权依据是签名的 keychain access group 而非 login keychain 的 ACL，因此换渠道或换证书都不会弹出"允许访问钥匙串"对话框。access group 取 `L2GSNW7RA2.vip.retagger.macapp`：App Store 渠道由描述文件的 `com.apple.application-identifier` 提供，直发渠道由 `ReTagger-Direct.entitlements` 的 `keychain-access-groups` 显式声明，两者必须保持一致。不得回落读取旧 login keychain 条目——那正是弹窗来源。
+- **凭据存储**：登录 token 与缓存用户资料统一保存在沙盒保护的 `UserDefaults` 中，不再使用系统 Keychain，从根源上杜绝 macOS 钥匙串访问与密码授权弹窗。应用运行于 App Sandbox 隔离环境中，数据受到系统沙盒保护；不同渠道（App Store、直发 DMG、本地 Debug）行为保持一致，无需声明 `keychain-access-groups`。
 
 
 ## 架构原则
@@ -51,3 +51,11 @@ ReTagger 面向音乐制作与收藏场景，利用 AI 协助批量整理 MP3、
 
 ## 文档同步
 - 若约束或技术栈发生变更，优先更新 `AGENTS.md`、`CLAUDE.md` 这两份文档，确保项目定位、架构原则与流程要求完全一致。
+
+- Do not preserve backward compatibility. Remove obsolete paths instead ofadding compatibility layers, fallbacks, or migrations.
+- Choose the simplest implementation that fully meets the currentrequirements. Avoid speculative abstractions, configuration, andindirection.
+- Grow the system in layers. Start from the smallest version that works endto end, and add each new capability on top of a product that alreadyworks. Never trade a working product for unfinished complexity.
+- Keep components modular and concerns clearly separated.
+- Prefer established, well-maintained libraries when they reduce overallcomplexity or improve reliability. Do not reimplement commonfunctionality without a clear reason.
+- Lean on the dependencies already in the project before writing your ownimplementation or adding packages. Do not assume a library lacks acapability without checking its documentation and types.
+- Make architectural decisions for the long term. Do not accept a stopgapthat only works for now and is meant to be replaced later.
