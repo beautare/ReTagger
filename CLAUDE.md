@@ -23,7 +23,11 @@ ReTagger 是一款面向音乐工作者的 macOS SwiftUI 应用，用于批量�
 - **凭据存储**：登录 token 与缓存用户资料统一保存在沙盒保护的 `UserDefaults` 中，不再使用系统 Keychain，从根源上杜绝 macOS 钥匙串访问与密码授权弹窗。应用运行于 App Sandbox 隔离环境中，数据受到系统沙盒保护；不同渠道（App Store、直发 DMG、本地 Debug）行为保持一致，无需声明 `keychain-access-groups`。
 
 ## 发布渠道与自动更新
-- **双渠道分发**：App Store（Xcode Archive 手动提交，应用内更新由 `AppUpdateService` 检查并跳转商店）与 GitHub Release 直发（DMG + Sparkle 自动更新，`SparkleUpdaterService`）。
+- **双渠道分发**：App Store（支持 `npm run deploy:appstore` 一键自动打包上传提审，或 Xcode Archive 手动提交，应用内更新由 `AppUpdateService` 检查并跳转商店）与 GitHub Release 直发（DMG + Sparkle 自动更新，`SparkleUpdaterService`）。
+- **App Store CLI 自动化命令**：
+  - `npm run release:patch`：升级 Patch 版本号，自动同步更新 `package.json`、`project.pbxproj` 并初始化新版 `./metadata`
+  - `npm run deploy:appstore`：执行一键编译、打包、导出、上传并提交 Mac App Store 审核
+  - `npm run asc:status`：查看 Mac App Store 线上发布看板与审核状态
 - **渠道差异只通过 `SPARKLE_ENABLED` 编译条件表达**，日常 Debug/Release 构建与 App Store 流程完全不含 Sparkle；直发差异（编译条件、Sparkle 链接与嵌入、Info.plist 更新源、直发 entitlements）全部由 `scripts/package_direct.sh` 在打包时注入，不修改 Xcode 工程文件。
 - **发布流程**：`scripts/release.sh X.Y.Z` 更新版本并打 tag → 推送 tag 触发 `.github/workflows/release.yml` → 构建 arm64 / x86_64 双 DMG（Developer ID 签名 + 公证）→ 创建自动 changelog 的 GitHub Release → 按架构更新 gh-pages 上的 `appcast-arm64.xml` / `appcast-x86_64.xml`。
 - 直发版首启通过 `UpdatePermissionPromptView` 授权气泡（Ghostty 风格）征询"自动检查更新"，且为唯一征询入口——打包时预置 `SUEnableAutomaticChecks=NO` 抑制 Sparkle 内置询问弹窗，用户选择写入 UserDefaults 覆盖该默认值；Sparkle 公钥、feed 地址等常量维护在 `scripts/package_direct.sh`。
