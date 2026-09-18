@@ -8,29 +8,62 @@ const PACKAGE_JSON_PATH = path.join(ROOT_DIR, 'package.json');
 const PBXPROJ_PATH = path.join(ROOT_DIR, 'ReTagger.xcodeproj', 'project.pbxproj');
 const METADATA_DIR = path.join(ROOT_DIR, 'metadata');
 
-const bumpType = process.argv[2] || 'patch';
+const arg = process.argv[2] || 'patch';
 
-// 1. 读取并更新 package.json
-const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, 'utf8'));
-const oldVersion = pkg.version;
-const parts = oldVersion.split('.').map(Number);
-
-if (bumpType === 'major') {
-  parts[0] += 1;
-  parts[1] = 0;
-  parts[2] = 0;
-} else if (bumpType === 'minor') {
-  parts[1] += 1;
-  parts[2] = 0;
-} else {
-  // patch
-  parts[2] += 1;
+// 1. 读取当前基准版本（优先以 project.pbxproj 的 MARKETING_VERSION 为真理源）
+let currentVersion = '1.0.0';
+if (fs.existsSync(PBXPROJ_PATH)) {
+  const pbxContent = fs.readFileSync(PBXPROJ_PATH, 'utf8');
+  const match = pbxContent.match(/MARKETING_VERSION = ([0-9.]+);/);
+  if (match && match[1] && match[1] !== '1.0') {
+    currentVersion = match[1];
+  }
+}
+if (fs.existsSync(PACKAGE_JSON_PATH)) {
+  const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, 'utf8'));
+  if (pkg.version && semverCompare(pkg.version, currentVersion) > 0) {
+    currentVersion = pkg.version;
+  }
 }
 
-const newVersion = parts.join('.');
-pkg.version = newVersion;
-fs.writeFileSync(PACKAGE_JSON_PATH, JSON.stringify(pkg, null, 2) + '\n');
-console.log(`📦 package.json: ${oldVersion} → ${newVersion}`);
+function semverCompare(a, b) {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    const diff = (pa[i] || 0) - (pb[i] || 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
+let newVersion = '';
+if (/^[0-9]+\.[0-9]+\.[0-9]+$/.test(arg)) {
+  newVersion = arg;
+} else {
+  const parts = currentVersion.split('.').map(Number);
+  if (arg === 'major') {
+    parts[0] += 1;
+    parts[1] = 0;
+    parts[2] = 0;
+  } else if (arg === 'minor') {
+    parts[1] += 1;
+    parts[2] = 0;
+  } else {
+    // patch
+    parts[2] += 1;
+  }
+  newVersion = parts.join('.');
+}
+
+// 同步写入 package.json
+let oldPkgVersion = '';
+if (fs.existsSync(PACKAGE_JSON_PATH)) {
+  const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, 'utf8'));
+  oldPkgVersion = pkg.version;
+  pkg.version = newVersion;
+  fs.writeFileSync(PACKAGE_JSON_PATH, JSON.stringify(pkg, null, 2) + '\n');
+  console.log(`📦 package.json: ${oldPkgVersion} → ${newVersion}`);
+}
 
 // 2. 更新 project.pbxproj 的 MARKETING_VERSION 和 CURRENT_PROJECT_VERSION
 if (fs.existsSync(PBXPROJ_PATH)) {

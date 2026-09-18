@@ -35,8 +35,26 @@ if ! command -v asc &> /dev/null; then
   exit 1
 fi
 
-# 1. 获取当前版本号
-VERSION=$(node -p "require('./package.json').version")
+# 1. 获取当前版本号（以 Xcode 工程 project.pbxproj 为真实依据，并自动同步 package.json）
+PBXPROJ="$PROJECT/project.pbxproj"
+if [ -f "$PBXPROJ" ]; then
+  VERSION=$(grep 'MARKETING_VERSION = ' "$PBXPROJ" | grep -v '= 1.0;' | head -1 | sed 's/.*= //' | sed 's/;.*//' | tr -d '[:space:]')
+fi
+
+if [ -z "${VERSION:-}" ] && [ -f "package.json" ]; then
+  VERSION=$(node -p "require('./package.json').version")
+fi
+
+if [ -z "${VERSION:-}" ]; then
+  echo "❌ 无法从 project.pbxproj 或 package.json 中解析版本号！"
+  exit 1
+fi
+
+# 确保 package.json 与工程版本号保持完全一致
+if [ -f "package.json" ]; then
+  node -e "const fs=require('fs'); const p=require('./package.json'); if(p.version!=='$VERSION'){p.version='$VERSION'; fs.writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n');}" 2>/dev/null || true
+fi
+
 echo "🚀 开始发布 ReTagger (macOS) v${VERSION} 到 Mac App Store..."
 
 # 2. 检查并确保当前版本的元数据目录存在且包含 json 文件

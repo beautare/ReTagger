@@ -160,6 +160,23 @@ info "Step 1/4: 更新版本号..."
 sed -i '' "s/MARKETING_VERSION = ${CURRENT_VERSION};/MARKETING_VERSION = ${NEW_VERSION};/g" "$PBXPROJ"
 sed -i '' "s/CURRENT_PROJECT_VERSION = ${CURRENT_BUILD};/CURRENT_PROJECT_VERSION = ${NEW_BUILD};/g" "$PBXPROJ"
 
+# 同步更新 package.json（若存在）
+if [ -f "${PROJECT_ROOT}/package.json" ]; then
+    node -e "const fs=require('fs'); const p=require('${PROJECT_ROOT}/package.json'); p.version='${NEW_VERSION}'; fs.writeFileSync('${PROJECT_ROOT}/package.json', JSON.stringify(p, null, 2)+'\n');" 2>/dev/null || true
+fi
+
+# 同步准备 metadata/version/<newVersion> 目录模板（若存在 metadata/version）
+if [ -d "${PROJECT_ROOT}/metadata/version" ]; then
+    NEW_META_DIR="${PROJECT_ROOT}/metadata/version/${NEW_VERSION}"
+    if [ ! -d "$NEW_META_DIR" ]; then
+        LATEST_META=$(find "${PROJECT_ROOT}/metadata/version" -mindepth 1 -maxdepth 1 -type d ! -name "${NEW_VERSION}" 2>/dev/null | sort -V | tail -n 1)
+        if [ -n "$LATEST_META" ] && [ -d "$LATEST_META" ]; then
+            mkdir -p "$NEW_META_DIR"
+            cp "$LATEST_META"/*.json "$NEW_META_DIR/" 2>/dev/null || true
+        fi
+    fi
+fi
+
 # 验证更新结果
 VERIFY_VERSION=$(read_current_version)
 VERIFY_BUILD=$(read_current_build)
@@ -194,6 +211,8 @@ fi
 info "Step 3/4: Git commit..."
 
 git add "$PBXPROJ"
+[ -f "${PROJECT_ROOT}/package.json" ] && git add "${PROJECT_ROOT}/package.json"
+[ -d "${PROJECT_ROOT}/metadata/version/${NEW_VERSION}" ] && git add "${PROJECT_ROOT}/metadata/version/${NEW_VERSION}"
 git commit -m "release: 发布 v${NEW_VERSION}"
 
 ok "已提交: release: 发布 v${NEW_VERSION}"
