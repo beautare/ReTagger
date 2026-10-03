@@ -235,6 +235,7 @@ struct VoucherRedeemResponse: Codable {
 /// Request for native OAuth login with PKCE
 struct NativeOAuthRequest: Codable {
     let provider: String
+    let registrationId: String?
     let code: String
     let redirectUri: String?
     let codeVerifier: String?
@@ -248,19 +249,21 @@ struct NativeOAuthRequest: Codable {
     }
     
     // Initializer for Google (PKCE)
-    init(provider: String = "google", code: String, redirectUri: String, codeVerifier: String) {
+    init(provider: String = "google", registrationId: String, clientId: String, code: String, redirectUri: String, codeVerifier: String) {
         self.provider = provider
+        self.registrationId = registrationId
         self.code = code
         self.redirectUri = redirectUri
         self.codeVerifier = codeVerifier
         self.usePkce = true
         self.fullName = nil
-        self.clientId = nil
+        self.clientId = clientId
     }
     
     // Initializer for Apple (Native, No PKCE)
     init(provider: String = "apple", code: String, usePkce: Bool = false, fullName: AppleFullName? = nil, clientId: String? = nil) {
         self.provider = provider
+        self.registrationId = nil
         self.code = code
         self.redirectUri = nil
         self.codeVerifier = nil

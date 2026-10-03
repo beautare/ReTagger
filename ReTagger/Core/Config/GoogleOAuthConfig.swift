@@ -12,7 +12,7 @@ import Foundation
 /// To set up:
 /// 1. Go to Google Cloud Console (https://console.cloud.google.com)
 /// 2. Create a new OAuth 2.0 Client ID with type "Desktop app"
-/// 3. Put it in `.env.local` at the repository root: GOOGLE_CLIENT_ID=...
+/// 3. Put it in `.env.local` at the repository root: GOOGLE_CLIENT_ID=... and GOOGLE_OAUTH_REGISTRATION_ID=...
 enum GoogleOAuthConfig {
 
     /// Google OAuth Client ID for ReTagger macOS app
@@ -22,7 +22,12 @@ enum GoogleOAuthConfig {
     /// “Embed .env.local” 构建阶段将该文件拷入 App 包内供运行时读取），
     /// 仓库中不保留真实 Client ID
     static var clientId: String {
-        EnvironmentParser.getValue(for: "GOOGLE_CLIENT_ID", defaultValue: "YOUR_CLIENT_ID.apps.googleusercontent.com")
+        EnvironmentParser.getValue(for: "GOOGLE_CLIENT_ID", defaultValue: "")
+    }
+
+    /// 后端数据库中的项目、平台、环境配置编号。
+    static var registrationId: String {
+        EnvironmentParser.getValue(for: "GOOGLE_OAUTH_REGISTRATION_ID", defaultValue: "")
     }
 
     /// OAuth redirect URI，使用 loopback 地址。

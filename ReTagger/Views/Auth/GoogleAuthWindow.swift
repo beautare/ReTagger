@@ -2,16 +2,12 @@
 //  GoogleAuthWindow.swift
 //  ReTagger
 //
-//  应用内 Google 授权窗口：以独立 NSWindow 承载 WKWebView 加载授权页。
-//  授权完成后 Google 重定向到本地 loopback 地址，授权码由
-//  GoogleOAuthLoopbackServer 接收，本窗口只负责展示与取消。
-//  （macOS 上 ASWebAuthenticationSession 会把流程移交系统默认浏览器，
-//  无法满足"不脱离应用"的要求，故采用 WKWebView 方案。）
+//  Google 在系统浏览器中授权；此窗口提供等待与取消操作。
+//  授权码由本地 loopback 服务接收。
 //
 
 import SwiftUI
 import AppKit
-import WebKit
 
 final class AuthWindowManager: NSObject {
     static let shared = AuthWindowManager()
@@ -32,7 +28,7 @@ final class AuthWindowManager: NSObject {
 
         let hostingController = NSHostingController(rootView: contentView)
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 500, height: 650),
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 240),
             styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
@@ -45,7 +41,7 @@ final class AuthWindowManager: NSObject {
 
         authWindow = window
         window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        NSWorkspace.shared.open(url)
     }
 
     /// 授权流程结束（成功或失败）后收起窗口，不触发 onCancel
@@ -81,38 +77,19 @@ private struct GoogleAuthSheetView: View {
     let onCancel: () -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(localizationManager.string("auth.google_login_title"))
-                    .font(.headline)
-                Spacer()
-                Button(localizationManager.string("common.cancel")) {
-                    onCancel()
+        VStack(spacing: 20) {
+            ProgressView()
+            Text(localizationManager.string("auth.google_browser_hint"))
+                .multilineTextAlignment(.center)
+            HStack(spacing: 16) {
+                Button(localizationManager.string("auth.google_open_browser")) {
+                    NSWorkspace.shared.open(url)
                 }
-                .keyboardShortcut(.cancelAction)
+                Button(localizationManager.string("common.cancel"), action: onCancel)
+                    .keyboardShortcut(.cancelAction)
             }
-            .padding()
-            .background(.background)
-
-            Divider()
-
-            AuthWebView(url: url)
         }
-        .frame(minWidth: 480, minHeight: 600)
-    }
-}
-
-/// 纯展示用的 WKWebView 容器：授权码由 loopback 服务接收，无需拦截导航
-private struct AuthWebView: NSViewRepresentable {
-    let url: URL
-
-    func makeNSView(context: Context) -> WKWebView {
-        WKWebView()
-    }
-
-    func updateNSView(_ nsView: WKWebView, context: Context) {
-        if nsView.url == nil {
-            nsView.load(URLRequest(url: url))
-        }
+        .padding(28)
+        .frame(minWidth: 420, minHeight: 180)
     }
 }

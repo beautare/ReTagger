@@ -590,3 +590,7 @@
 "error_alert.invalid_settings.message" = "There is a problem with the app settings: %@\n\nPlease review and correct the settings to continue.";
 "error_alert.invalid_settings.open_settings" = "Open Settings";
 "error_alert.cancelled.title" = "Operation Cancelled";
+
+"auth.google_configuration_missing" = "Google sign-in is not configured. Please set the Google client ID and backend registration ID.";
+"auth.google_browser_hint" = "Complete sign-in in your system browser. This window will close when sign-in finishes.";
+"auth.google_open_browser" = "Open browser again";

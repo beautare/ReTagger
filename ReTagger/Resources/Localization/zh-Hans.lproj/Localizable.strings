@@ -591,3 +591,7 @@
 "error_alert.invalid_settings.message" = "应用设置存在问题：%@\n\n请检查并更正设置后继续。";
 "error_alert.invalid_settings.open_settings" = "打开设置";
 "error_alert.cancelled.title" = "操作已取消";
+
+"auth.google_configuration_missing" = "尚未配置 Google 登录，请设置 Google 客户端 ID 和后端配置编号。";
+"auth.google_browser_hint" = "请在系统浏览器中完成登录。登录完成后，此窗口将自动关闭。";
+"auth.google_open_browser" = "重新打开浏览器";

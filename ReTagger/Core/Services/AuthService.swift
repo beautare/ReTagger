@@ -315,14 +315,11 @@ class AuthService: AuthTokenProviding, ObservableObject {
         
     // MARK: - Google OAuth (Client-Side PKCE, loopback redirect)
 
-    /// 发起 Google 登录：起本地 loopback 回调服务、在应用内的授权窗口
-    /// （WKWebView）打开授权页、等待授权码回调后与后端换取登录态。
-    ///
-    /// Google 已废弃 Desktop 类型 client 的自定义 URL Scheme 重定向，
-    /// 重定向必须走 loopback 地址；授权页则沿用应用内窗口承载，
-    /// 避免把用户带离 ReTagger（macOS 上 ASWebAuthenticationSession
-    /// 会移交系统默认浏览器，不满足此要求）。
+    /// 使用系统浏览器授权，由 loopback 服务接收回调，再按数据库配置编号换取登录态。
     func signInWithGoogle(localization: LocalizationManager) async throws {
+        guard !GoogleOAuthConfig.registrationId.isEmpty, !GoogleOAuthConfig.clientId.isEmpty else {
+            throw ReTaggerError.networkError(localization.string("auth.google_configuration_missing"))
+        }
         let server = try await GoogleOAuthLoopbackServer.start()
         defer { server.stop() }
 
@@ -356,6 +353,8 @@ class AuthService: AuthTokenProviding, ObservableObject {
         guard let networkService = networkService else { return }
 
         let request = NativeOAuthRequest(
+            registrationId: GoogleOAuthConfig.registrationId,
+            clientId: GoogleOAuthConfig.clientId,
             code: callback.code,
             redirectUri: redirectUri,
             codeVerifier: codeVerifier
