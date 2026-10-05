@@ -451,7 +451,12 @@ struct ContentView: View {
         Task { @MainActor in
             switch await resolveAccessibleDirectory(for: targetURL) {
             case .granted(let accessibleURL):
-                handleDirectorySelection(accessibleURL, triggerScan: true)
+                if handleDirectorySelection(accessibleURL, triggerScan: true), !accessibleURL.isDirectory {
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("SidebarFileSelected"),
+                        object: accessibleURL
+                    )
+                }
             case .cancelled:
                 break
             case .denied(let deniedURL):

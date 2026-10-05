@@ -33,6 +33,7 @@ struct MetadataReviewView: View {
     /// 避免拖拽期间每帧触发表格与详情面板的全量重布局
     @State var stackedDetailDragPreviewHeight: CGFloat?
     @State var pendingScrollTarget: AudioMetadata.ID?
+    @State private var pendingSidebarFileURL: URL?
     @State var pendingTrashItems: [AudioMetadata] = []
     @State var isShowingTrashConfirmation = false
     @State var isApplyingCorrections = false
@@ -89,6 +90,24 @@ struct MetadataReviewView: View {
             return searchableFields.contains { $0.contains(lowercasedSearch) }
         }
         cachedFilteredFiles = result
+    }
+
+    private func revealSidebarFile(_ url: URL) {
+        guard let file = currentFiles.first(where: {
+            $0.filePath.standardizedFileURL.path == url.standardizedFileURL.path
+        }) else {
+            pendingSidebarFileURL = url
+            return
+        }
+
+        pendingSidebarFileURL = nil
+        if !searchText.isEmpty || !debouncedSearchText.isEmpty {
+            searchText = ""
+            debouncedSearchText = ""
+            cachedFilteredFiles = currentFiles
+        }
+        tableSelection = [file.id]
+        pendingScrollTarget = file.id
     }
 
     /// 构建用于过滤的字段集合，可选附加拼音索引
@@ -352,6 +371,9 @@ struct MetadataReviewView: View {
                 synchronizeFieldSelectionsWithFiles()
                 syncSelectionWithCurrentTrack()
                 cachedFilteredFiles = currentFiles
+                if let selectedFile = coordinator.selectedDirectory, !selectedFile.isDirectory {
+                    revealSidebarFile(selectedFile)
+                }
             }
             .task(id: searchText) {
                 do {
@@ -366,10 +388,21 @@ struct MetadataReviewView: View {
             }
             .onChange(of: currentFiles) { _ in
                 updateFilteredFiles()
+                if let pendingSidebarFileURL {
+                    revealSidebarFile(pendingSidebarFileURL)
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DirectoryChanged"))) { notification in
                 if let url = notification.object as? URL {
                     currentDirectory = url
+                    if url.isDirectory {
+                        pendingSidebarFileURL = nil
+                    }
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SidebarFileSelected"))) { notification in
+                if let url = notification.object as? URL {
+                    revealSidebarFile(url)
                 }
             }
     }
