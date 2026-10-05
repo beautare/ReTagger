@@ -18,6 +18,7 @@ struct PlaybackBarView: View {
     /// 初始为无穷大 → 首帧按内联布局渲染，onAppear 立即回填真实宽度
     @State private var measuredBarWidth: CGFloat = .greatestFiniteMagnitude
     @State private var isHoveringProgress = false
+    @State private var isHoveringTrackSummary = false
     @Namespace private var playbackBarNamespace
     @State private var keyMonitor: Any? = nil
     /// 手型光标是否已入栈，保证 NSCursor push/pop 严格配对
@@ -167,7 +168,7 @@ struct PlaybackBarView: View {
                 font: .systemFont(ofSize: DesignSystem.Layout.PlaybackBar.trackTitleFontSize, weight: .semibold),
                 textColor: .labelColor,
                 width: DesignSystem.Layout.PlaybackBar.trackTitleTextWidth,
-                isPlaying: timeline.isPlaying
+                isPlaying: isHoveringTrackSummary
             )
 
             MarqueeTextView(
@@ -175,11 +176,13 @@ struct PlaybackBarView: View {
                 font: .systemFont(ofSize: DesignSystem.Layout.PlaybackBar.trackSubtitleFontSize, weight: .regular),
                 textColor: .secondaryLabelColor,
                 width: DesignSystem.Layout.PlaybackBar.trackTitleTextWidth,
-                isPlaying: timeline.isPlaying
+                isPlaying: isHoveringTrackSummary
             )
         }
         .frame(width: DesignSystem.Layout.PlaybackBar.trackSummaryWidth, alignment: isUltraCompactLayout ? .center : .leading)
         .help(state.currentTrack?.fileName ?? "")
+        .onHover { isHoveringTrackSummary = $0 }
+        .onDisappear { isHoveringTrackSummary = false }
         .matchedGeometryEffect(id: "trackSummary", in: playbackBarNamespace)
     }
 
