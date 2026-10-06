@@ -349,7 +349,7 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
             updateProcessingRows()
         }
         
-        if selectionChanged {
+        if selectionChanged || idsChanged || configChanged {
             syncSelectionToTable()
         }
 
@@ -741,6 +741,10 @@ final class MetadataTableViewController: NSViewController, NSTableViewDelegate, 
     func tableView(_ tableView: NSTableView, didAdd rowView: NSTableRowView, forRow row: Int) {
         if let processingRow = rowView as? ProcessingRowView {
             configure(rowView: processingRow, for: row)
+        }
+        // 滚动复用时，AppKit 可能在行挂载到窗口前设置文字样式；此时重新同步。
+        for column in 0..<tableView.numberOfColumns {
+            (rowView.view(atColumn: column) as? NSTableCellView)?.backgroundStyle = rowView.interiorBackgroundStyle
         }
     }
     
@@ -1142,6 +1146,10 @@ private extension MetadataTableViewController {
 // MARK: - Custom Cell Views
 
 class ProcessingRowView: NSTableRowView {
+    override var interiorBackgroundStyle: NSView.BackgroundStyle {
+        isSelected && window?.isKeyWindow == true ? .emphasized : .normal
+    }
+
     var isProcessing: Bool = false {
         didSet { updateAppearance() }
     }
@@ -1519,6 +1527,26 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
     private let secondaryLabel = MetadataTableCellView.makeLabel()
     private let editButton = NSButton()
     private let editButtonBackground = NSView()  // hover 高亮背景
+    private var displayContent: MetadataCellContent?
+
+    override var backgroundStyle: NSView.BackgroundStyle {
+        didSet { updateTextColors() }
+    }
+
+    private func updateTextColors() {
+        guard !isInEditMode, let content = displayContent else { return }
+        func displayed(_ value: NSAttributedString) -> NSAttributedString {
+            guard backgroundStyle == .emphasized else { return value }
+            let result = NSMutableAttributedString(attributedString: value)
+            result.addAttribute(.foregroundColor, value: NSColor.alternateSelectedControlTextColor,
+                                range: NSRange(location: 0, length: result.length))
+            return result
+        }
+        primaryLabel.attributedStringValue = displayed(content.primary)
+        if let secondary = content.secondary {
+            secondaryLabel.attributedStringValue = displayed(secondary)
+        }
+    }
 
     /// primaryLabel/secondaryLabel 两行文本之间的垂直间距
     private static let lineSpacing: CGFloat = 2
@@ -1709,6 +1737,8 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         // 如果正在编辑，不更新内容
         guard !isInEditMode else { return }
 
+        displayContent = content
+
         primaryLabel.attributedStringValue = content.primary
         primaryLabel.toolTip = content.toolTip
 
@@ -1749,6 +1779,7 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         primaryLeadingWithButton.isActive = isEditable
         primaryLeadingNoButton.isActive = !isEditable
 
+        updateTextColors()
         needsLayout = true
     }
     
@@ -1875,6 +1906,7 @@ class MetadataTableCellView: NSTableCellView, NSTextFieldDelegate {
         }
         
         // 放弃焦点
+        updateTextColors()
         window?.makeFirstResponder(nil)
     }
     

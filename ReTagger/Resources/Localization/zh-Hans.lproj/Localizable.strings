@@ -26,6 +26,7 @@
 "action.copy_path" = "拷贝文件路径";
 "action.restore_default_columns" = "恢复到默认的列配置";
 "action.confirm_write" = "修正";
+"action.confirm_write_count" = "应用修正（%d）";
 "action.no_pending_confirmations" = "当前没有待确认的 AI 修正";
 "action.play" = "播放";
 "action.discard" = "放弃";
@@ -57,6 +58,7 @@
 
 /* AI Related */
 "ai.tagging" = "AI 打标签";
+"ai.tagging_count" = "AI 打标签（%d）";
 "ai.tagging_failed" = "AI 打标签失败";
 "ai.no_corrections" = "AI 未提供新的修正";
 "ai.retry" = "重试 AI";
@@ -66,8 +68,8 @@
 "ai.app_subtitle" = "AI 音乐标签修正工具";
 "ai.processing_with_gemini" = "正在使用 Gemini 处理元数据";
 "ai.select_track_for_details" = "选择曲目查看 AI 修正详情";
-"ai.write_all_pending" = "将所有待确认的 AI 修正应用到文件";
-"ai.tag_all_tracks" = "对当前列表中的所有曲目执行 AI 自动打标签";
+"ai.write_all_pending" = "将已选歌曲中待确认的 AI 修正写入文件；未选择时处理当前显示的歌曲";
+"ai.tag_all_tracks" = "对已选歌曲执行 AI 自动打标签；未选择时处理当前显示的歌曲";
 "ai.processed_count" = "已处理 %d/%d 个文件";
 "ai.batch_progress" = "批次 %d/%d";
 "ai.success_count" = "成功处理了 %d 个文件";
@@ -371,6 +373,7 @@
 
 /* Search */
 "search.placeholder" = "过滤曲目...";
+"search.no_results" = "没有符合搜索条件的歌曲";
 
 /* Column Configuration */
 "header.menu.auto_size" = "自动调整列宽";

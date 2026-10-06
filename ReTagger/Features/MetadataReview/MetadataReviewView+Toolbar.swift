@@ -42,7 +42,7 @@ extension MetadataReviewView {
                 HStack(spacing: 4) {
                     Text(localizationManager.string(
                         "toolbar.track_count",
-                        arguments: directoryName, currentFiles.count
+                        arguments: directoryName, filteredFiles.count
                     ))
                     .font(.headline)
                     .fontWeight(.medium)
@@ -58,7 +58,7 @@ extension MetadataReviewView {
                 HStack(spacing: 4) {
                     Text(localizationManager.string(
                         "toolbar.track_count_multi",
-                        arguments: displayLabel, currentFiles.count
+                        arguments: displayLabel, filteredFiles.count
                     ))
                     .font(.headline)
                     .fontWeight(.medium)
@@ -141,45 +141,41 @@ extension MetadataReviewView {
                                     isShowingTrashConfirmation || 
                                     isShowingBackupAccessDeniedAlert
 
+        let actionFiles = tableSelection.isEmpty ? filteredFiles : selectedMetadatas
+
         Button {
-            let total = currentFiles.count
+            let total = actionFiles.count
             guard total > 0 else { return }
-            let selection = Set(currentFiles.map(\.id))
+            let selection = Set(actionFiles.map(\.id))
             pendingBulkAction = PendingBulkAction(
                 action: .aiProcess,
                 count: total,
                 selection: selection
             )
         } label: {
-            Label(localizationManager.string("ai.tagging"), systemImage: "wand.and.stars")
+            Label(localizationManager.string("ai.tagging_count", arguments: actionFiles.count), systemImage: "wand.and.stars")
         }
         .buttonStyle(.borderedProminent)
         .tint(.purple)
-        .disabled(isInteractionDisabled || currentFiles.isEmpty)
+        .disabled(isInteractionDisabled || actionFiles.isEmpty)
         .help(localizationManager.string("ai.tag_all_tracks"))
 
-        let hasConfirmableTracks = currentFiles.contains { metadata in
+        let confirmableFiles = actionFiles.filter { metadata in
             metadata.processingState == .awaitingConfirmation &&
             !MetadataField.relevantFields(for: metadata).isEmpty &&
             !pendingConfirmations.contains(metadata.id)
         }
 
-        if hasConfirmableTracks {
+        if !confirmableFiles.isEmpty {
             Button {
-                let allConfirmable = currentFiles.filter { metadata in
-                    metadata.processingState == .awaitingConfirmation &&
-                    !MetadataField.relevantFields(for: metadata).isEmpty &&
-                    !pendingConfirmations.contains(metadata.id)
-                }
-                guard !allConfirmable.isEmpty else { return }
-                let selection = Set(allConfirmable.map(\.id))
+                let selection = Set(confirmableFiles.map(\.id))
                 pendingBulkAction = PendingBulkAction(
                     action: .confirmWrite,
-                    count: allConfirmable.count,
+                    count: confirmableFiles.count,
                     selection: selection
                 )
             } label: {
-                Label(localizationManager.string("action.confirm_write"), systemImage: "checkmark.circle")
+                Label(localizationManager.string("action.confirm_write_count", arguments: confirmableFiles.count), systemImage: "checkmark.circle")
             }
             .buttonStyle(.borderedProminent)
             .tint(.green)

@@ -529,11 +529,13 @@ extension MetadataReviewView {
 
     // MARK: - AI 处理与字段选择
 
-    func processWithAI() {
+    func processWithAI(selection: Set<AudioMetadata.ID>) {
         guard !isProcessing else { return }
+        let targetFiles = currentFiles.filter { selection.contains($0.id) }
+        guard !targetFiles.isEmpty else { return }
 
         // 点数前置检查：与右键选择路径保持一致的失败反馈
-        let requiredCredits = currentFiles.count
+        let requiredCredits = targetFiles.count
         let (isQuotaAvailable, currentBalance) = checkQuotaAvailability(requiredCount: requiredCredits)
         if !isQuotaAvailable, let balance = currentBalance {
             let userStatus = coordinator.authService.isAuthenticated
@@ -552,10 +554,10 @@ extension MetadataReviewView {
         processingProgress = 0.0
 
         // 记录原始状态，便于失败时恢复
-        let previousStates = Dictionary(uniqueKeysWithValues: currentFiles.map { ($0.id, $0.processingState) })
+        let previousStates = Dictionary(uniqueKeysWithValues: targetFiles.map { ($0.id, $0.processingState) })
 
-        // 行级处理提示：整体处理时先标记所有曲目为 processing，驱动表格内的掠过动画
-        for index in currentFiles.indices {
+        // 仅标记确认框中列出的曲目
+        for index in currentFiles.indices where selection.contains(currentFiles[index].id) {
             currentFiles[index].processingState = .processing
         }
         coordinator.audioFiles = currentFiles
@@ -579,7 +581,7 @@ extension MetadataReviewView {
             }
 
             do {
-                try await coordinator.processMetadataWithAI()
+                try await coordinator.processMetadataWithAI(for: targetFiles)
 
                 await MainActor.run {
                     isProcessing = false
@@ -589,11 +591,13 @@ extension MetadataReviewView {
                     synchronizeFieldSelectionsWithFiles()
                     
                     // Auto-scroll to the first item awaiting confirmation
-                    if let firstProcessed = currentFiles.first(where: { $0.processingState == .awaitingConfirmation }) {
+                    if let firstProcessed = currentFiles.first(where: {
+                        selection.contains($0.id) && $0.processingState == .awaitingConfirmation
+                    }) {
                         pendingScrollTarget = firstProcessed.id
                     }
 
-                    Logger.ai.info("AI 打标签完成：\(currentFiles.count, privacy: .public) 条")
+                    Logger.ai.info("AI 打标签完成：\(targetFiles.count, privacy: .public) 条")
                 }
 
             } catch {
@@ -615,11 +619,8 @@ extension MetadataReviewView {
         currentFiles.sort(using: order)
         coordinator.audioFiles = currentFiles
 
-        // 顺序播放模式下，排序变更同步到播放队列
-        if playbackController.state.isActive
-            && playbackController.state.order == .sequential {
-            playbackController.reorderQueue(currentFiles)
-        }
+        // 顺序播放模式下仅重排当前播放队列中的歌曲
+        reorderActivePlaybackQueue()
     }
 
     /// 将当前排序偏好持久化到设置中

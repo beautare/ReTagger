@@ -26,6 +26,7 @@
 "action.copy_path" = "Copy File Path";
 "action.restore_default_columns" = "Restore default column configuration";
 "action.confirm_write" = "Confirm Write";
+"action.confirm_write_count" = "Confirm Write (%d)";
 "action.no_pending_confirmations" = "No pending AI corrections to confirm";
 "action.play" = "Play";
 "action.discard" = "Discard";
@@ -57,6 +58,7 @@
 
 /* AI Related */
 "ai.tagging" = "AI Tagging";
+"ai.tagging_count" = "AI Tagging (%d)";
 "ai.tagging_failed" = "AI tagging failed";
 "ai.no_corrections" = "AI did not provide new suggestions";
 "ai.retry" = "Retry AI";
@@ -66,8 +68,8 @@
 "ai.app_subtitle" = "AI Music Tagging Assistant";
 "ai.processing_with_gemini" = "Processing metadata via Gemini";
 "ai.select_track_for_details" = "Select a track to view AI changes";
-"ai.write_all_pending" = "Write all pending AI changes to files";
-"ai.tag_all_tracks" = "Run AI tagging for every track in the list";
+"ai.write_all_pending" = "Write pending AI changes for selected tracks; all displayed tracks when nothing is selected";
+"ai.tag_all_tracks" = "Run AI tagging for selected tracks; all displayed tracks when nothing is selected";
 "ai.processed_count" = "Processed %d/%d files";
 "ai.batch_progress" = "Batch %d/%d";
 "ai.success_count" = "Successfully processed %d files";
@@ -333,6 +335,7 @@
 
 /* Search */
 "search.placeholder" = "Filter tracks...";
+"search.no_results" = "No tracks match this search";
 
 /* Column Configuration */
 "header.menu.auto_size" = "Auto-size Column";

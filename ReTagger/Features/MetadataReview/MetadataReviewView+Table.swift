@@ -228,6 +228,14 @@ extension MetadataReviewView {
             fontScale: coordinator.settings.metadataTableFontScale
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay {
+            if filteredFiles.isEmpty {
+                Text(localizationManager.string(debouncedSearchText.isEmpty ? "review.empty.no_audio_files" : "search.no_results"))
+                    .foregroundColor(.secondary)
+                    .padding(DesignSystem.Spacing.md)
+                    .allowsHitTesting(false)
+            }
+        }
         .simultaneousGesture(
             TapGesture().onEnded {
                 playbackController.dismissQueuePanelIfNeeded()
@@ -267,28 +275,12 @@ extension MetadataReviewView {
         }
     }
 
-    var orderedSelectionIDs: [AudioMetadata.ID] {
-        tableSelection.sorted { lhs, rhs in
-            guard let leftIndex = currentFiles.firstIndex(where: { $0.id == lhs }),
-                  let rightIndex = currentFiles.firstIndex(where: { $0.id == rhs }) else {
-                return false
-            }
-            return leftIndex < rightIndex
-        }
-    }
-
     var primarySelection: AudioMetadata? {
-        guard let firstID = orderedSelectionIDs.first,
-              let metadata = currentFiles.first(where: { $0.id == firstID }) else {
-            return nil
-        }
-        return metadata
+        currentFiles.first { tableSelection.contains($0.id) }
     }
 
     var selectedMetadatas: [AudioMetadata] {
-        orderedSelectionIDs.compactMap { id in
-            currentFiles.first(where: { $0.id == id })
-        }
+        currentFiles.filter { tableSelection.contains($0.id) }
     }
 
     @ViewBuilder

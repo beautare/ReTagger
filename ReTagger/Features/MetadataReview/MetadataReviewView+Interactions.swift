@@ -15,7 +15,7 @@ extension MetadataReviewView {
     // MARK: - Selection & Playback
 
     func handleDoubleTap(on metadata: AudioMetadata) {
-        guard !currentFiles.isEmpty else { return }
+        guard !filteredFiles.isEmpty else { return }
         
         let ext = metadata.filePath.pathExtension.lowercased()
         if ["dsf", "dff"].contains(ext) {
@@ -23,12 +23,12 @@ extension MetadataReviewView {
             return
         }
 
-        playbackController.startPlayback(queue: currentFiles, from: metadata)
+        playbackController.startPlayback(queue: filteredFiles, from: metadata)
         tableSelection = [metadata.id]
     }
 
     func canPlaySelection(selection: Set<AudioMetadata.ID>) -> Bool {
-        !resolveSelection(selection).isEmpty && !currentFiles.isEmpty
+        !resolveSelection(selection).isEmpty && !filteredFiles.isEmpty
     }
 
     func playSelection(selection: Set<AudioMetadata.ID>) {
@@ -41,18 +41,25 @@ extension MetadataReviewView {
             return
         }
 
-        playbackController.startPlayback(queue: currentFiles, from: primary)
+        playbackController.startPlayback(queue: filteredFiles, from: primary)
         tableSelection = [primary.id]
     }
 
-    /// 主动定位时调用：选中并滚动到当前播放曲目（双击播放条、初始加载等场景）
+    func reorderActivePlaybackQueue() {
+        guard playbackController.state.isActive,
+              playbackController.state.order == .sequential else { return }
+        let queuedIDs = Set(playbackController.state.queueIDs)
+        playbackController.reorderQueue(currentFiles.filter { queuedIDs.contains($0.id) })
+    }
+
+    /// 加载时恢复可见的播放行选择，保持当前目录和搜索范围
     func syncSelectionWithCurrentTrack() {
         guard let track = playbackController.state.currentTrack else {
             pendingScrollTarget = nil
             return
         }
 
-        if let match = currentFiles.first(where: { $0.filePath == track.filePath }) {
+        if let match = filteredFiles.first(where: { $0.filePath == track.filePath }) {
             tableSelection = [match.id]
             pendingScrollTarget = match.id
         }
@@ -64,7 +71,7 @@ extension MetadataReviewView {
             return
         }
 
-        if let match = currentFiles.first(where: { $0.filePath == track.filePath }) {
+        if let match = filteredFiles.first(where: { $0.filePath == track.filePath }) {
             pendingScrollTarget = match.id
         }
     }

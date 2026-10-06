@@ -33,7 +33,7 @@ struct MetadataReviewView: View {
     /// 避免拖拽期间每帧触发表格与详情面板的全量重布局
     @State var stackedDetailDragPreviewHeight: CGFloat?
     @State var pendingScrollTarget: AudioMetadata.ID?
-    @State private var pendingSidebarFileURL: URL?
+    @State private var pendingRevealFileURL: URL?
     @State var pendingTrashItems: [AudioMetadata] = []
     @State var isShowingTrashConfirmation = false
     @State var isApplyingCorrections = false
@@ -70,13 +70,16 @@ struct MetadataReviewView: View {
         cachedFilteredFiles
     }
 
-    /// 在后台线程执行过滤计算，结果回到主线程更新缓存
     /// 执行过滤计算，更新缓存
     private func updateFilteredFiles() {
         let query = debouncedSearchText
         let files = currentFiles
+
         guard !query.isEmpty else {
             cachedFilteredFiles = files
+            if !tableSelection.isEmpty {
+                tableSelection.formIntersection(Set(files.map(\.id)))
+            }
             return
         }
         let visibleColumns = Set(columnConfiguration.orderedVisibleColumns())
@@ -90,24 +93,27 @@ struct MetadataReviewView: View {
             return searchableFields.contains { $0.contains(lowercasedSearch) }
         }
         cachedFilteredFiles = result
+        if !tableSelection.isEmpty {
+            tableSelection.formIntersection(Set(result.map(\.id)))
+        }
     }
 
-    private func revealSidebarFile(_ url: URL) {
-        guard let file = currentFiles.first(where: {
-            $0.filePath.standardizedFileURL.path == url.standardizedFileURL.path
-        }) else {
-            pendingSidebarFileURL = url
-            return
+    func revealFile(_ url: URL) {
+        let targetPath = url.standardizedFileURL.path
+        let isDirectory = url.isDirectory
+        let prefix = targetPath.hasSuffix("/") ? targetPath : targetPath + "/"
+        let matches = currentFiles.filter { file in
+            let path = file.filePath.standardizedFileURL.path
+            return isDirectory ? path.hasPrefix(prefix) : path == targetPath
         }
 
-        pendingSidebarFileURL = nil
-        if !searchText.isEmpty || !debouncedSearchText.isEmpty {
-            searchText = ""
-            debouncedSearchText = ""
-            cachedFilteredFiles = currentFiles
-        }
-        tableSelection = [file.id]
-        pendingScrollTarget = file.id
+        // 新目录扫描完成后再补齐选择；元数据更新不会反复覆盖用户的选择。
+        pendingRevealFileURL = coordinator.scanRequest != nil || (!isDirectory && matches.isEmpty) ? url : nil
+        searchText = ""
+        debouncedSearchText = ""
+        updateFilteredFiles()
+        tableSelection = Set(matches.map(\.id))
+        pendingScrollTarget = matches.first?.id
     }
 
     /// 构建用于过滤的字段集合，可选附加拼音索引
@@ -369,10 +375,10 @@ struct MetadataReviewView: View {
                     applySortOrder(sortOrder)
                 }
                 synchronizeFieldSelectionsWithFiles()
+                updateFilteredFiles()
                 syncSelectionWithCurrentTrack()
-                cachedFilteredFiles = currentFiles
-                if let selectedFile = coordinator.selectedDirectory, !selectedFile.isDirectory {
-                    revealSidebarFile(selectedFile)
+                if let selectedFile = coordinator.selectedDirectory {
+                    revealFile(selectedFile)
                 }
             }
             .task(id: searchText) {
@@ -388,21 +394,24 @@ struct MetadataReviewView: View {
             }
             .onChange(of: currentFiles) { _ in
                 updateFilteredFiles()
-                if let pendingSidebarFileURL {
-                    revealSidebarFile(pendingSidebarFileURL)
+                if let pendingRevealFileURL, coordinator.scanRequest == nil {
+                    revealFile(pendingRevealFileURL)
+                }
+            }
+            .onChange(of: coordinator.scanRequest?.id) { requestID in
+                if requestID == nil, let url = pendingRevealFileURL {
+                    revealFile(url)
+                    pendingRevealFileURL = nil
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DirectoryChanged"))) { notification in
                 if let url = notification.object as? URL {
                     currentDirectory = url
-                    if url.isDirectory {
-                        pendingSidebarFileURL = nil
-                    }
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SidebarFileSelected"))) { notification in
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SidebarItemSelected"))) { notification in
                 if let url = notification.object as? URL {
-                    revealSidebarFile(url)
+                    revealFile(url)
                 }
             }
     }
@@ -415,8 +424,6 @@ struct MetadataReviewView: View {
                 let newOnly = newFiles.filter { !currentIDs.contains($0.id) }
                 let removedIDs = currentIDs.subtracting(newFiles.map(\.id))
                 
-                var hasChanges = false
-                
                 if !newOnly.isEmpty || !removedIDs.isEmpty {
                     if !removedIDs.isEmpty {
                         currentFiles.removeAll { removedIDs.contains($0.id) }
@@ -427,35 +434,25 @@ struct MetadataReviewView: View {
                         currentFiles.append(contentsOf: sortedNew)
                     }
                     coordinator.audioFiles = currentFiles
-                    if playbackController.state.isActive
-                        && playbackController.state.order == .sequential {
-                        playbackController.reorderQueue(currentFiles)
-                    }
-                    hasChanges = true
+                    reorderActivePlaybackQueue()
                 } else {
                     // 同步属性的改变（如：处理状态、修正建议等属性变动）
+                    let indices = Dictionary(uniqueKeysWithValues: currentFiles.enumerated().map { ($0.element.id, $0.offset) })
                     for newFile in newFiles {
-                        if let index = currentFiles.firstIndex(where: { $0.id == newFile.id }) {
+                        if let index = indices[newFile.id] {
                             if currentFiles[index] != newFile {
                                 currentFiles[index] = newFile
-                                hasChanges = true
                             }
                         }
                     }
-                }
-                
-                // 如果检测到属性改变且 count 没变，此时不会被 count 的 onChange 捕获，
-                // 我们在 onChange(of: currentFiles) 内部会捕获，但显式调用以防万一
-                if hasChanges {
-                    updateFilteredFiles()
                 }
             }
             .onChange(of: playbackController.state.currentTrackID) { _ in
                 scrollToCurrentTrack()
             }
             .onChange(of: playbackController.revealRequestToken) { _ in
-                guard playbackController.state.isActive else { return }
-                syncSelectionWithCurrentTrack()
+                guard let track = playbackController.state.currentTrack else { return }
+                revealFile(track.filePath)
             }
             .onChange(of: tableSelection) { _ in
                 playbackController.dismissQueuePanelIfNeeded()
@@ -596,7 +593,7 @@ extension MetadataReviewView {
     func performBulkAction(_ pending: PendingBulkAction) {
         switch pending.action {
         case .aiProcess:
-            processWithAI()
+            processWithAI(selection: pending.selection)
         case .confirmWrite:
             applyCorrections(selection: pending.selection)
         }

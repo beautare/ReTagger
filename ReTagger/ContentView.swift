@@ -376,6 +376,8 @@ struct ContentView: View {
             // Logic to add to workspace with permission handling
             if coordinator.activateSecurityScope(for: resolvedURL) {
                 coordinator.addWorkspaceDirectories([resolvedURL])
+                coordinator.selectedDirectory = resolvedURL
+                NotificationCenter.default.post(name: NSNotification.Name("SidebarItemSelected"), object: resolvedURL)
                 return
             }
 
@@ -389,6 +391,8 @@ struct ContentView: View {
             ) {
                 // If granted, add
                 coordinator.addWorkspaceDirectories([granted])
+                coordinator.selectedDirectory = granted
+                NotificationCenter.default.post(name: NSNotification.Name("SidebarItemSelected"), object: granted)
             } else {
                 coordinator.setError(
                     localizationManager.string("error.directory_denied_path", arguments: resolvedURL.path)
@@ -451,9 +455,9 @@ struct ContentView: View {
         Task { @MainActor in
             switch await resolveAccessibleDirectory(for: targetURL) {
             case .granted(let accessibleURL):
-                if handleDirectorySelection(accessibleURL, triggerScan: true), !accessibleURL.isDirectory {
+                if handleDirectorySelection(accessibleURL, triggerScan: true) {
                     NotificationCenter.default.post(
-                        name: NSNotification.Name("SidebarFileSelected"),
+                        name: NSNotification.Name("SidebarItemSelected"),
                         object: accessibleURL
                     )
                 }
@@ -564,7 +568,6 @@ struct ContentView: View {
                 let newFiles = allMetadata.filter { !existingIDs.contains($0.id) }
                 if !newFiles.isEmpty {
                     coordinator.audioFiles.append(contentsOf: newFiles)
-                    coordinator.playbackController.append(newFiles)
                 }
             } else {
                 coordinator.audioFiles = allMetadata

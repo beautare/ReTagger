@@ -163,6 +163,7 @@ struct DirectorySectionView: View, Equatable {
     private func miniDirectoryBadge(_ node: DirectoryTreeNode) -> some View {
         let isAssociated = isCurrentPlayingNode(node)
         let isPlaying = isAssociated && playbackController.isPlaying
+        let isSelected = selectedDirectory?.standardizedFileURL.path == node.url.standardizedFileURL.path
         
         let tooltipSuffix: String
         if isAssociated {
@@ -178,7 +179,7 @@ struct DirectorySectionView: View, Equatable {
                 .frame(width: 32, height: 32)
                 .background(
                     RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm)
-                        .fill(isAssociated ? DesignSystem.Colors.success : DesignSystem.Colors.primary.opacity(0.8))
+                        .fill(isAssociated ? DesignSystem.Colors.success : DesignSystem.Colors.primary.opacity(isSelected ? 1 : 0.6))
                 )
         }
         .buttonStyle(.plain)
@@ -276,11 +277,12 @@ struct DirectorySectionView: View, Equatable {
             }
         }
     }
-    
+
     private func rootFolderSection(_ rootNode: DirectoryTreeNode) -> some View {
         let isAssociated = isCurrentPlayingNode(rootNode)
         let isPlaying = isAssociated && playbackController.isPlaying
         let isHovered = hoveredRootNodeID == rootNode.id
+        let isSelected = selectedDirectory?.standardizedFileURL.path == rootNode.url.standardizedFileURL.path
 
         return HStack(spacing: DesignSystem.Spacing.sm) {
             if #available(macOS 14.0, *) {
@@ -347,11 +349,11 @@ struct DirectorySectionView: View, Equatable {
         .padding(.vertical, DesignSystem.Spacing.xs)
         .background(
             RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm)
-                .fill(isAssociated ? DesignSystem.Colors.successBackground(0.08) : DesignSystem.Colors.backgroundTertiary.opacity(0.5))
+                .fill(isSelected ? DesignSystem.Colors.primary.opacity(0.12) : (isAssociated ? DesignSystem.Colors.successBackground(0.08) : DesignSystem.Colors.backgroundTertiary.opacity(0.5)))
         )
         .overlay(
             RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm)
-                .stroke(isAssociated ? DesignSystem.Colors.success.opacity(0.24) : Color.clear, lineWidth: 1)
+                .stroke(isSelected ? DesignSystem.Colors.primary.opacity(0.35) : (isAssociated ? DesignSystem.Colors.success.opacity(0.24) : Color.clear), lineWidth: 1)
         )
         .padding(.horizontal, DesignSystem.Spacing.sm)
         .contentShape(Rectangle())

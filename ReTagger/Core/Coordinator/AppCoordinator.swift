@@ -1109,9 +1109,10 @@ class AppCoordinator: ObservableObject {
 
     /// 使用AI处理元数据
     func processMetadataWithAI(
+        for files: [AudioMetadata],
         options: MetadataProcessingRequest.ProcessingOptions? = nil
     ) async throws {
-        guard !self.audioFiles.isEmpty else {
+        guard !files.isEmpty else {
             Logger.ai.warning("没有可处理的文件")
             throw ReTaggerError.aiProcessingFailed("没有可处理的文件")
         }
@@ -1119,7 +1120,7 @@ class AppCoordinator: ObservableObject {
         self.isLoading = true
         defer { self.isLoading = false }
 
-        Logger.ai.info("开始AI元数据处理，文件数: \(self.audioFiles.count)")
+        Logger.ai.info("开始AI元数据处理，文件数: \(files.count)")
 
         do {
             // 使用提供的选项或默认选项
@@ -1127,10 +1128,10 @@ class AppCoordinator: ObservableObject {
 
             // 根据文件数量选择处理方式
             let updatedMetadata: [AudioMetadata]
-            if self.audioFiles.count > self.settings.batchSize {
+            if files.count > self.settings.batchSize {
                 // 大批量使用批处理
                 updatedMetadata = try await aiMetadataService.processBatch(
-                    self.audioFiles,
+                    files,
                     options: processingOptions,
                     batchSize: self.settings.batchSize,
                     fileNamingFormat: self.settings.fileNamingFormat
@@ -1138,14 +1139,15 @@ class AppCoordinator: ObservableObject {
             } else {
                 // 小批量直接处理
                 updatedMetadata = try await aiMetadataService.processMetadata(
-                    self.audioFiles,
+                    files,
                     options: processingOptions,
                     fileNamingFormat: self.settings.fileNamingFormat
                 )
             }
 
-            // 更新元数据列表
-            self.audioFiles = updatedMetadata
+            // 仅更新本次提交的曲目，保留其他目录中的歌曲
+            let updates = Dictionary(uniqueKeysWithValues: updatedMetadata.map { ($0.id, $0) })
+            self.audioFiles = self.audioFiles.map { updates[$0.id] ?? $0 }
 
             Logger.ai.info("AI元数据处理完成，成功更新: \(updatedMetadata.count) 个文件")
 
@@ -1283,7 +1285,6 @@ class AppCoordinator: ObservableObject {
         guard !newFiles.isEmpty else { return }
 
         audioFiles.append(contentsOf: newFiles)
-        playbackController.append(newFiles)
         Logger.fileSystem.info("拖入了 \(newFiles.count, privacy: .public) 个音频文件")
 
         // 自动进入元数据审查步骤
