@@ -334,7 +334,7 @@
 "playback.track.select" = "Select Audio File";
 
 /* Search */
-"search.placeholder" = "Filter tracks...";
+"search.placeholder" = "Find tracks...";
 "search.no_results" = "No tracks match this search";
 
 /* Column Configuration */

@@ -372,7 +372,7 @@
 "playback.track.select" = "请选择音频文件";
 
 /* Search */
-"search.placeholder" = "过滤曲目...";
+"search.placeholder" = "查找曲目...";
 "search.no_results" = "没有符合搜索条件的歌曲";
 
 /* Column Configuration */
