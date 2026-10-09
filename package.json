@@ -1,6 +1,6 @@
 {
   "name": "retagger",
-  "version": "1.13.4",
+  "version": "1.13.6",
   "private": true,
   "description": "ReTagger - AI-powered audio metadata editor for macOS",
   "scripts": {

@@ -180,9 +180,13 @@ final class GoogleOAuthLoopbackServer {
     private func handle(_ connection: NWConnection) {
         connection.stateUpdateHandler = { state in
             guard case .ready = state else { return }
+            // 连接由 respond 在应答发送完成后关闭；此处提前 cancel 会丢弃尚未写出的应答，
+            // 浏览器收不到页面会重试，而此时监听已随登录结束关闭，表现为 ERR_CONNECTION_REFUSED
             connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) { [weak self] data, _, _, _ in
-                defer { connection.cancel() }
-                guard let self else { return }
+                guard let self else {
+                    connection.cancel()
+                    return
+                }
 
                 guard let data, let rawRequest = String(data: data, encoding: .utf8) else {
                     Self.respond(on: connection, success: false)
