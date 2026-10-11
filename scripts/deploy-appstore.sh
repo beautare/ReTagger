@@ -29,6 +29,13 @@ ARCHIVE_PATH="$BUILD_DIR/ReTagger.xcarchive"
 EXPORT_DIR="$BUILD_DIR/export"
 METADATA_DIR="./metadata"
 
+XCODE_AUTH_ARGS=()
+if [ -n "${ASC_PRIVATE_KEY_PATH:-}" ]; then
+  XCODE_AUTH_ARGS=(-authenticationKeyPath "$ASC_PRIVATE_KEY_PATH"
+    -authenticationKeyID "${ASC_KEY_ID:?请设置 ASC_KEY_ID}"
+    -authenticationKeyIssuerID "${ASC_ISSUER_ID:?请设置 ASC_ISSUER_ID}")
+fi
+
 # 0. 检查前置工具
 if ! command -v asc &> /dev/null; then
   echo "❌ 未检测到 asc CLI，请先安装: https://asccli.sh"
@@ -97,6 +104,7 @@ xcodebuild \
   -destination "generic/platform=macOS" \
   -archivePath "$ARCHIVE_PATH" \
   -allowProvisioningUpdates \
+  "${XCODE_AUTH_ARGS[@]}" \
   archive
 
 # 5. 检查并修复 Beta 系统构建号（如果以字母结尾）
@@ -122,7 +130,16 @@ cat <<EOF > "$BUILD_DIR/ExportOptions.plist"
 	<key>method</key>
 	<string>app-store-connect</string>
 	<key>signingStyle</key>
-	<string>automatic</string>
+	<string>manual</string>
+	<key>signingCertificate</key>
+	<string>Apple Distribution</string>
+	<key>installerSigningCertificate</key>
+	<string>3rd Party Mac Developer Installer: Shanghai Jiamei Software Development Co., Ltd (L2GSNW7RA2)</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>vip.retagger.macapp</key>
+		<string>ReTagger App Store Local</string>
+	</dict>
 	<key>teamID</key>
 	<string>$TEAM_ID</string>
 </dict>
@@ -136,7 +153,8 @@ xcodebuild \
   -archivePath "$ARCHIVE_PATH" \
   -exportPath "$EXPORT_DIR" \
   -exportOptionsPlist "$BUILD_DIR/ExportOptions.plist" \
-  -allowProvisioningUpdates
+  -allowProvisioningUpdates \
+  "${XCODE_AUTH_ARGS[@]}"
 
 PKG_PATH="$EXPORT_DIR/${SCHEME}.pkg"
 if [ ! -f "$PKG_PATH" ]; then
@@ -154,7 +172,7 @@ echo "✅ PKG 导出成功: $PKG_PATH"
 echo "☁️  4/5 上传到 App Store Connect 并提交审核..."
 asc publish appstore \
   --app "$APP_ID" \
-  --ipa "$PKG_PATH" \
+  --pkg "$PKG_PATH" \
   --build-number "$BUILD_NUMBER" \
   --platform MAC_OS \
   --version "$VERSION" \
