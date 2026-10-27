@@ -11,6 +11,13 @@ import OSLog
 /// HTTP methods
 enum HTTPMethod: String {
     case GET, POST, PUT, DELETE
+
+    /// 超时、5xx 等瞬时失败是否自动重发。
+    /// 只有 GET 安全：POST/PUT/DELETE（AI 扣点、兑换、注册、注销等）可能已在服务端生效，
+    /// 客户端只是没收到响应，重发会造成重复扣点或“已兑换/已注册”之类的误报
+    var allowsAutomaticRetry: Bool {
+        self == .GET
+    }
 }
 
 /// Protocol defining network operations
@@ -80,13 +87,17 @@ class NetworkService: NetworkServiceProtocol {
 
     // MARK: - Initialization
 
-    init(baseURL: String, tokenProvider: (any AuthTokenProviding)? = nil) {
+    init(
+        baseURL: String,
+        tokenProvider: (any AuthTokenProviding)? = nil,
+        configuration: URLSessionConfiguration = .default
+    ) {
         self.baseURL = baseURL
         self.tokenProvider = tokenProvider
 
-        let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = Constants.API.defaultTimeout
-        configuration.timeoutIntervalForResource = Constants.API.aiProcessingTimeout
+        // 资源总时长上限需容纳 AI 元数据处理请求，单个请求的空闲超时由 URLRequest.timeoutInterval 决定
+        configuration.timeoutIntervalForResource = Constants.API.metadataProcessingTimeout
         self.session = URLSession(configuration: configuration)
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
@@ -135,7 +146,8 @@ class NetworkService: NetworkServiceProtocol {
         body: Encodable?,
         retryOnAuthFailure: Bool,
         retryingAfterAuthFailure: Bool,
-        additionalHeaders: [String: String]? = nil
+        additionalHeaders: [String: String]? = nil,
+        timeout: TimeInterval = Constants.API.defaultTimeout
     ) async throws -> T {
         let startTime = Logger.performance.logOperationStart("NetworkRequest[\(method.rawValue)]")
         
@@ -151,8 +163,10 @@ class NetworkService: NetworkServiceProtocol {
         // Create request
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
+        request.timeoutInterval = timeout
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(Constants.API.registrationSource, forHTTPHeaderField: Constants.API.registrationSourceHeader)
 
         // Add body if present
         if let body = body {
@@ -231,7 +245,8 @@ class NetworkService: NetworkServiceProtocol {
                                     body: body,
                                     retryOnAuthFailure: retryOnAuthFailure,
                                     retryingAfterAuthFailure: true,
-                                    additionalHeaders: additionalHeaders
+                                    additionalHeaders: additionalHeaders,
+                                    timeout: timeout
                                 )
                             } else if attempt < maxRetries - 1 {
                                 continue
@@ -277,6 +292,11 @@ class NetworkService: NetworkServiceProtocol {
                     throw error
                 }
 
+                guard method.allowsAutomaticRetry else {
+                    Logger.network.error("\(method.rawValue, privacy: .public) request is not retried automatically, aborting")
+                    throw error
+                }
+
                 // Exponential backoff
                 if attempt < maxRetries - 1 {
                     let delay = pow(2.0, Double(attempt))
@@ -306,10 +326,13 @@ class NetworkService: NetworkServiceProtocol {
     func processMetadata(_ request: MetadataProcessingRequest) async throws -> MetadataProcessingResponse {
         Logger.network.info("开始元数据处理，文件数: \(request.files.count)")
 
-        let response: MetadataProcessingResponse = try await self.request(
+        let response: MetadataProcessingResponse = try await performRequest(
             endpoint: Constants.API.metadataProcess,
             method: .POST,
-            body: request
+            body: request,
+            retryOnAuthFailure: true,
+            retryingAfterAuthFailure: false,
+            timeout: Constants.API.metadataProcessingTimeout
         )
 
         let processingTime = response.stats.processingTimeMs.map { "\($0)ms" } ?? "未知"
@@ -337,10 +360,13 @@ class NetworkService: NetworkServiceProtocol {
         Logger.network.info("开始批量元数据处理，文件数: \(request.files.count), 批大小: \(batchSize)")
 
         let endpoint = "\(Constants.API.metadataBatch)?batchSize=\(batchSize)"
-        let response: MetadataProcessingResponse = try await self.request(
+        let response: MetadataProcessingResponse = try await performRequest(
             endpoint: endpoint,
             method: .POST,
-            body: request
+            body: request,
+            retryOnAuthFailure: true,
+            retryingAfterAuthFailure: false,
+            timeout: Constants.API.metadataProcessingTimeout
         )
         let processingTime = response.stats.processingTimeMs.map { "\($0)ms" } ?? "未知"
         let provider = response.stats.aiProvider ?? "未知"

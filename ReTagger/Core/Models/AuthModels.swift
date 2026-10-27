@@ -143,6 +143,13 @@ struct UserResponse: Codable, Identifiable {
 struct LoginRequest: Codable {
     let email: String
     let password: String
+    let registrationSource: String?
+
+    init(email: String, password: String, registrationSource: String? = Constants.API.registrationSource) {
+        self.email = email
+        self.password = password
+        self.registrationSource = registrationSource
+    }
 }
 
 struct RegisterRequest: Codable {
@@ -232,7 +239,6 @@ struct VoucherRedeemResponse: Codable {
 // MARK: - Native OAuth Models (Client-Side PKCE)
 
 /// Request for native OAuth login with PKCE
-/// Request for native OAuth login with PKCE
 struct NativeOAuthRequest: Codable {
     let provider: String
     let registrationId: String?
@@ -242,6 +248,7 @@ struct NativeOAuthRequest: Codable {
     let usePkce: Bool
     let fullName: AppleFullName?
     let clientId: String?
+    let registrationSource: String?
     
     struct AppleFullName: Codable {
         let givenName: String?
@@ -249,7 +256,7 @@ struct NativeOAuthRequest: Codable {
     }
     
     // Initializer for Google (PKCE)
-    init(provider: String = "google", registrationId: String, clientId: String, code: String, redirectUri: String, codeVerifier: String) {
+    init(provider: String = "google", registrationId: String, clientId: String, code: String, redirectUri: String, codeVerifier: String, registrationSource: String? = Constants.API.registrationSource) {
         self.provider = provider
         self.registrationId = registrationId
         self.code = code
@@ -258,10 +265,11 @@ struct NativeOAuthRequest: Codable {
         self.usePkce = true
         self.fullName = nil
         self.clientId = clientId
+        self.registrationSource = registrationSource
     }
     
     // Initializer for Apple (Native, No PKCE)
-    init(provider: String = "apple", code: String, usePkce: Bool = false, fullName: AppleFullName? = nil, clientId: String? = nil) {
+    init(provider: String = "apple", code: String, usePkce: Bool = false, fullName: AppleFullName? = nil, clientId: String? = nil, registrationSource: String? = Constants.API.registrationSource) {
         self.provider = provider
         self.registrationId = nil
         self.code = code
@@ -270,6 +278,7 @@ struct NativeOAuthRequest: Codable {
         self.usePkce = usePkce
         self.fullName = fullName
         self.clientId = clientId
+        self.registrationSource = registrationSource
     }
 }
 

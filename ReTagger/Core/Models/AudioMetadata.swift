@@ -399,6 +399,41 @@ struct AudioMetadata: Identifiable, Codable, Equatable {
         return "\(prefix)_\(normalized)"
     }
 
+    // MARK: - Rescan Merge
+
+    /// 目录重扫后，把上一轮的审阅状态（处理状态、AI 建议等）带到新读取的条目上，标签与路径以磁盘为准。
+    /// 只按文件路径匹配：同名文件分散在不同专辑目录里极为常见（如 01.flac），按文件名兜底会让
+    /// 新出现的文件继承另一首曲目的 AI 修正，进而在批量确认时被写入错误的标签。
+    /// 应用自身改名后内存条目已更新为新路径，按路径同样能对上
+    static func mergeRescanned(
+        _ rescanned: [AudioMetadata],
+        preservingReviewStateFrom previous: [AudioMetadata]
+    ) -> [AudioMetadata] {
+        let previousByPath = Dictionary(
+            previous.map { ($0.filePath.standardizedFileURL.path, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
+
+        return rescanned.map { fresh in
+            guard let old = previousByPath[fresh.filePath.standardizedFileURL.path] else {
+                return fresh
+            }
+            var merged = fresh
+            merged.processingState = old.processingState
+            merged.correctedTitle = old.correctedTitle
+            merged.correctedArtist = old.correctedArtist
+            merged.correctedAlbum = old.correctedAlbum
+            merged.correctedGenre = old.correctedGenre
+            merged.correctedYear = old.correctedYear
+            merged.suggestedFileName = old.suggestedFileName
+            merged.suggestedFolderPath = old.suggestedFolderPath
+            merged.aiNotes = old.aiNotes
+            merged.confidence = old.confidence
+            merged.error = old.error
+            return merged
+        }
+    }
+
     // MARK: - Value Normalization
 
     static func hasMeaningfulChange(original: String?, corrected: String?) -> Bool {

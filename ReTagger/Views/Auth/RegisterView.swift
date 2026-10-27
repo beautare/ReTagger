@@ -155,7 +155,7 @@ struct RegisterView: View {
                     password: uiState.registerPassword,
                     username: uiState.registerUsername.isEmpty ? nil : uiState.registerUsername,
                     displayName: nil,
-                    registrationSource: "retagger",
+                    registrationSource: Constants.API.registrationSource,
                     referralCode: nil,
                     deviceFingerprint: DeviceFingerprint.collect(),
                     policyAcceptance: PolicyAcceptanceRequest.generate()

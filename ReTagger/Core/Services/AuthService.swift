@@ -305,7 +305,7 @@ class AuthService: AuthTokenProviding, ObservableObject {
             endpoint: "/api/v1/users/delete-account",
             method: .DELETE,
             body: nil as String?,
-            additionalHeaders: ["RegistrationSource": "retagger"]
+            additionalHeaders: [Constants.API.registrationSourceHeader: Constants.API.registrationSource]
         )
         
         // 删除成功后清除本地状态

@@ -24,9 +24,12 @@ enum Constants {
         static let healthCheckEndpoint = metadataHealth
 
         // 超时配置
-        static let defaultTimeout: TimeInterval = 30
-        static let aiProcessingTimeout: TimeInterval = 120
-        static let metadataProcessingTimeout: TimeInterval = 180  // 3分钟（处理大批量时）
+        nonisolated static let defaultTimeout: TimeInterval = 30
+        nonisolated static let metadataProcessingTimeout: TimeInterval = 180  // 3分钟（处理大批量时）
+
+        // 客户端来源标识
+        static let registrationSource = "retagger"
+        static let registrationSourceHeader = "RegistrationSource"
     }
 
     // MARK: - File System

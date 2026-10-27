@@ -15,6 +15,8 @@ struct DirectoryScanRequest: Identifiable, Equatable {
     let urls: [URL]
     let includeSubdirectories: Bool
     let isIncremental: Bool
+    /// 发起请求时的工作区代次，见 AppCoordinator.workspaceGeneration
+    let workspaceGeneration: Int
 }
 
 struct MetadataUndoRecord: Identifiable {
@@ -54,6 +56,10 @@ class AppCoordinator: ObservableObject {
         }
     }
     @Published private(set) var scanRequest: DirectoryScanRequest?
+    /// 工作区代次：整体替换（非追加扫描）或重置工作区时递增。
+    /// 扫描结束时若代次已变，说明结果属于已被替换的旧工作区，应丢弃；
+    /// 同一代次内并发的追加扫描结果都要合并，不能因 scanRequest 被后来者覆盖而丢失
+    private(set) var workspaceGeneration = 0
     @Published private(set) var undoRecords: [AudioMetadata.ID: MetadataUndoRecord] = [:]
 
     // MARK: - Security Scope
@@ -387,25 +393,14 @@ class AppCoordinator: ObservableObject {
                 id: UUID(),
                 urls: resolvedURLs,
                 includeSubdirectories: includeSubdirectories,
-                isIncremental: false
+                isIncremental: false,
+                workspaceGeneration: workspaceGeneration
             )
             restoreScanRequestID = request.id
             scanRequest = request
-            // isRestoringWorkspace 将在 clearScanRequest 中检测到扫描完成后关闭
-            
-            // 超时保护：若 30 秒内扫描仍未完成（UI 竞态导致 performScan 从未被触发），
-            // 自动解除 isRestoringWorkspace，避免 UI 永远卡在恢复加载界面。
-            let capturedRequestID = request.id
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 30_000_000_000)
-                // 若 restoreScanRequestID 仍然是当前请求，说明扫描从未完成
-                if self.restoreScanRequestID == capturedRequestID {
-                    Logger.fileSystem.warning("恢复工作区扫描超时（30s），强制解除恢复状态")
-                    self.restoreScanRequestID = nil
-                    self.scanRequest = nil
-                    self.isRestoringWorkspace = false
-                }
-            }
+            // isRestoringWorkspace 在 clearScanRequest 检测到恢复扫描结束后关闭。
+            // 不设超时：大曲库扫描耗时可远超数十秒，超时强行结束会让扫描结果被丢弃；
+            // 恢复界面提供取消入口（cancelRestore）
         } else {
             isRestoringWorkspace = false
         }
@@ -499,36 +494,10 @@ class AppCoordinator: ObservableObject {
                     }
                 }
 
-                // Merge into self.audioFiles while preserving AI edits
-                let oldFilesDict = Dictionary(self.audioFiles.map { ($0.fileName, $0) }, uniquingKeysWith: { first, _ in first }) // Use fileName as fallback matching
-                let oldFilesByID = Dictionary(self.audioFiles.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-                
-                var finalFiles: [AudioMetadata] = []
-                for newFile in newAudioFiles {
-                    // Try exact match by ID first, then by filename if ID changed (e.g. renamed externally)
-                    let matchedOldFile = oldFilesByID[newFile.id] ?? oldFilesDict[newFile.fileName]
-                    
-                    if let oldFile = matchedOldFile {
-                        // Preserve AI modifications but take the fresh file's real tags/path
-                        var merged = newFile
-                        merged.processingState = oldFile.processingState
-                        merged.correctedTitle = oldFile.correctedTitle
-                        merged.correctedArtist = oldFile.correctedArtist
-                        merged.correctedAlbum = oldFile.correctedAlbum
-                        merged.correctedGenre = oldFile.correctedGenre
-                        merged.correctedYear = oldFile.correctedYear
-                        merged.suggestedFileName = oldFile.suggestedFileName
-                        merged.suggestedFolderPath = oldFile.suggestedFolderPath
-                        merged.aiNotes = oldFile.aiNotes
-                        merged.confidence = oldFile.confidence
-                        merged.error = oldFile.error
-                        
-                        // We also keep the old file's ID if we want, but using new ID is safer because it matches the new filePath
-                        finalFiles.append(merged)
-                    } else {
-                        finalFiles.append(newFile)
-                    }
-                }
+                let finalFiles = AudioMetadata.mergeRescanned(
+                    newAudioFiles,
+                    preservingReviewStateFrom: self.audioFiles
+                )
 
                 // 找出被外部删除的文件路径集合
                 let oldPaths = Set(self.audioFiles.map { $0.filePath.standardizedFileURL.path })
@@ -597,6 +566,7 @@ class AppCoordinator: ObservableObject {
     // MARK: - State Management
 
     func reset() {
+        workspaceGeneration += 1
         currentStep = .directorySelection
         selectedDirectory = nil
         workspaceDirectories = []
@@ -702,6 +672,7 @@ class AppCoordinator: ObservableObject {
 
     func triggerScan(for urls: [URL], includeSubdirectories overrideInclude: Bool? = nil, isAppend: Bool = false) {
         if !isAppend {
+            workspaceGeneration += 1
             selectedDirectory = urls.first
             workspaceDirectories = urls
         } else {
@@ -719,7 +690,8 @@ class AppCoordinator: ObservableObject {
             id: UUID(),
             urls: urls,
             includeSubdirectories: overrideInclude ?? includeSubdirectories,
-            isIncremental: isAppend
+            isIncremental: isAppend,
+            workspaceGeneration: workspaceGeneration
         )
         scanRequest = request
         saveWorkspaceState()
@@ -788,10 +760,11 @@ class AppCoordinator: ObservableObject {
     }
 
     func clearScanRequest(id: UUID) {
-        guard scanRequest?.id == id else { return }
-        scanRequest = nil
-        
-        // 检测恢复扫描完成
+        if scanRequest?.id == id {
+            scanRequest = nil
+        }
+
+        // 恢复扫描结束：即使期间有新的扫描请求覆盖了 scanRequest，也要解除恢复状态
         if id == restoreScanRequestID {
             restoreScanRequestID = nil
             isRestoringWorkspace = false

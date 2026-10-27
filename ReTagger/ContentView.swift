@@ -507,7 +507,13 @@ struct ContentView: View {
             coordinator.clearScanRequest(id: request.id)
             return
         }
-        
+
+        // 请求所属的工作区在开始扫描前已被整体替换或重置，不能再清空新工作区的列表
+        guard request.workspaceGeneration == coordinator.workspaceGeneration else {
+            coordinator.clearScanRequest(id: request.id)
+            return
+        }
+
         if !request.isIncremental {
             coordinator.audioFiles = []
         }
@@ -560,27 +566,26 @@ struct ContentView: View {
                 allMetadata.append(contentsOf: metadataList)
             }
             
-            if coordinator.scanRequest?.id != request.id { return }
+            // 扫描期间工作区被整体替换或重置（如取消恢复、重新选择目录）：结果属于旧工作区，丢弃
+            guard request.workspaceGeneration == coordinator.workspaceGeneration else { return }
 
-            if request.isIncremental {
-                // 过滤掉已存在的文件，防止与 handleExternalDirectoryChange 竞态导致重复
-                let existingIDs = Set(coordinator.audioFiles.map(\.id))
-                let newFiles = allMetadata.filter { !existingIDs.contains($0.id) }
-                if !newFiles.isEmpty {
-                    coordinator.audioFiles.append(contentsOf: newFiles)
-                }
-            } else {
-                coordinator.audioFiles = allMetadata
-                if coordinator.isRestoringWorkspace {
-                    if let lastTrackPath = coordinator.settings.lastPlayingTrackPath,
-                       let targetTrack = allMetadata.first(where: { $0.filePath.path == lastTrackPath }) {
-                        let lastTrackTime = UserDefaults.standard.double(forKey: "lastPlayingTrackTime")
-                        coordinator.playbackController.restorePlaybackQueue(
-                            queue: allMetadata,
-                            selectTrack: targetTrack,
-                            time: lastTrackTime
-                        )
-                    }
+            // 同一工作区内的扫描结果一律去重合并。非追加扫描开始时已清空列表，
+            // 此刻列表里已有的条目来自并发完成的追加扫描或外部变更重扫，不能被覆盖
+            let existingIDs = Set(coordinator.audioFiles.map(\.id))
+            let newFiles = allMetadata.filter { !existingIDs.contains($0.id) }
+            if !newFiles.isEmpty {
+                coordinator.audioFiles.append(contentsOf: newFiles)
+            }
+
+            if !request.isIncremental && coordinator.isRestoringWorkspace {
+                if let lastTrackPath = coordinator.settings.lastPlayingTrackPath,
+                   let targetTrack = allMetadata.first(where: { $0.filePath.path == lastTrackPath }) {
+                    let lastTrackTime = UserDefaults.standard.double(forKey: "lastPlayingTrackTime")
+                    coordinator.playbackController.restorePlaybackQueue(
+                        queue: allMetadata,
+                        selectTrack: targetTrack,
+                        time: lastTrackTime
+                    )
                 }
             }
             

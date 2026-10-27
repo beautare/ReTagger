@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import OSLog
 
 struct RecentDirectoryEntry: Codable, Equatable, Identifiable {
     var path: String
@@ -508,11 +509,18 @@ struct AppSettings: Codable {
 
     /// Load settings from UserDefaults
     static func load() -> AppSettings {
-        guard let data = UserDefaults.standard.data(forKey: userDefaultsKey),
-              var settings = try? JSONDecoder().decode(AppSettings.self, from: data) else {
+        guard let data = UserDefaults.standard.data(forKey: userDefaultsKey) else {
             return AppSettings()
         }
-        
+
+        var settings: AppSettings
+        do {
+            settings = try decodeMergingDefaults(data)
+        } catch {
+            Logger.config.error("设置存档解码失败，回退到默认设置：\(String(describing: error), privacy: .public)")
+            return AppSettings()
+        }
+
         #if DEBUG
         // In DEBUG mode, ALWAYS use the URL from AppConfiguration.
         // This ensures developers always use the correct environment URL based on
@@ -536,5 +544,19 @@ struct AppSettings: Codable {
         if let data = try? JSONEncoder().encode(self) {
             UserDefaults.standard.set(data, forKey: AppSettings.userDefaultsKey)
         }
+    }
+
+    /// 以默认设置的编码结果为底，叠加存档中已有的键后再解码。
+    /// 合成的 Decodable 遇到缺失的非可选键会直接抛 keyNotFound；若直接解码旧存档，
+    /// 任何版本新增字段都会让整个存档解码失败、用户设置被全部重置
+    static func decodeMergingDefaults(_ data: Data) throws -> AppSettings {
+        let defaults = try JSONSerialization.jsonObject(with: JSONEncoder().encode(AppSettings())) as! [String: Any]
+        guard let stored = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(codingPath: [], debugDescription: "设置存档不是 JSON 对象")
+            )
+        }
+        let merged = defaults.merging(stored) { _, storedValue in storedValue }
+        return try JSONDecoder().decode(AppSettings.self, from: JSONSerialization.data(withJSONObject: merged))
     }
 }

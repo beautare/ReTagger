@@ -138,17 +138,24 @@ final class StoreKitService: ObservableObject {
 
     // MARK: - 同步未到账订单
 
-    /// 同步未完成的交易（付款成功但后端未确认的情况）
-    func restorePurchases() async {
-        do {
-            try await AppStore.sync()
-            // 同步后重新检查
-            await checkUnfinishedTransactions()
-            Logger.auth.info("同步未到账订单完成")
-        } catch {
-            Logger.auth.error("同步失败: \(error.localizedDescription)")
-            purchaseError = "同步失败：\(error.localizedDescription)"
+    /// 重新提交未完成的交易（付款成功但后端未确认的情况），后端确认后才 finish。
+    /// Transaction.updates 只在应用启动时投递一次未完成交易，运行期间补单必须主动遍历 Transaction.unfinished；
+    /// 点数为消耗型商品，AppStore.sync() 对其无效且会弹出 Apple ID 验证，因此不使用
+    func syncUnfinishedTransactions() async {
+        purchaseError = nil
+        for await result in Transaction.unfinished {
+            do {
+                let transaction = try checkVerified(result)
+                if await verifyWithServer(transaction: transaction, signedData: result.jwsRepresentation) {
+                    await transaction.finish()
+                    Logger.auth.info("补单成功: \(transaction.productID, privacy: .public)")
+                }
+            } catch {
+                Logger.auth.error("未完成交易签名校验失败: \(error.localizedDescription, privacy: .public)")
+                purchaseError = "交易校验失败：\(error.localizedDescription)"
+            }
         }
+        await checkUnfinishedTransactions()
     }
 
     /// 检查是否存在未完成的交易
@@ -233,7 +240,7 @@ final class StoreKitService: ObservableObject {
             return true
         } catch {
             Logger.auth.error("后端验证交易失败: \(error.localizedDescription)")
-            purchaseError = "充值验证失败，请稍后在「恢复购买」中重试"
+            purchaseError = "充值验证失败，请稍后点击「同步未到账订单」重试"
             return false
         }
     }

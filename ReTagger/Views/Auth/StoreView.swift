@@ -96,7 +96,7 @@ struct StoreView: View {
 
                 HStack {
                     Button(localizationManager.string("store.sync_pending_orders")) {
-                        Task { await storeService.restorePurchases() }
+                        Task { await storeService.syncUnfinishedTransactions() }
                     }
                     .buttonStyle(.borderless)
                     .font(.caption)
